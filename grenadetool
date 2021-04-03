@@ -1,0 +1,409 @@
+settings {
+    "main": {
+        "description": "Darwin's Ana Nade Tool v1.4 Shows where your nade/shield/grav/dynamite etc will land. Aim up and press Interact to swap to the nade view. Crouch and Jump to zoom the view. Ultimate to toggle follow cam for Ana. Perfect for super long-range nades that go the full arc. SINGLEPLAYER."
+    },
+    "lobby": {
+        "spectatorSlots": 12,
+        "team1Slots": 1,
+        "team2Slots": 1
+    },
+    "gamemodes": {
+        "assault": {
+            "enabledMaps": []
+        },
+        "control": {
+            "enabledMaps": [],
+            "setValidControlPoints": "second"
+        },
+        "escort": {
+            "enabledMaps": []
+        },
+        "hybrid": {
+            "enabledMaps": [
+                "eichenwalde"
+            ]
+        },
+        "general": {
+            "gamemodeStartTrigger": "manual",
+            "respawnTime%": 0
+        }
+    },
+    "heroes": {
+        "allTeams": {
+            "ana": {
+                "damageDealt%": 10,
+                "damageReceived%": 10,
+                "health%": 500,
+                "enableUlt": false
+            },
+            "enabledHeroes": [
+                "ana",
+                "ashe",
+                "baptiste",
+                "junkrat",
+                "mei",
+                "orisa",
+                "sigma",
+                "sombra",
+                "torbjorn",
+                "zarya"
+            ],
+            "general": {
+                "abilityCooldown%": 0,
+                "enableSpawningWithUlt": true,
+                "ultGen%": 500,
+                "combatUltGen%": 500,
+                "passiveUltGen%": 500
+            }
+        }
+    }
+}
+
+rule "SETUP":
+    @Event eachPlayer
+    @Hero all
+    
+    eventPlayer.U = 10
+
+
+rule "ULTIMATE RECHARGE":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    
+    eventPlayer.setUltCharge(100)
+
+
+rule "-------------HUD-------------":
+
+
+rule "HUD FOR POSITION AND ANGLES AND RAY":
+    @Event eachPlayer
+    @Hero all
+    
+    hudHeader(eventPlayer, eventPlayer.getPosition(), HudPosition.TOP, 0.05, Color.WHITE, HudReeval.STRING, SpecVisibility.DEFAULT)
+    hudHeader(eventPlayer, eventPlayer.getVerticalFacingAngle() * -1, HudPosition.TOP, 0.1, Color.GREEN, HudReeval.STRING, SpecVisibility.DEFAULT)
+    hudHeader(eventPlayer, eventPlayer.getHorizontalFacingAngle(), HudPosition.TOP, 0.1, Color.RED, HudReeval.STRING, SpecVisibility.DEFAULT)
+    hudHeader(eventPlayer, l"{0} {1} {2}".format(l"Wall", l"Warning", l"{0} m".format(distance(eventPlayer.getEyePosition(), eventPlayer.F))), HudPosition.LEFT, 0, Color.WHITE, HudReeval.STRING, SpecVisibility.DEFAULT)
+
+
+rule "HUD FLY TIME":
+    @Event eachPlayer
+    @Hero all
+    
+    hudHeader(eventPlayer, l"{0} {1} {2}".format(l"Fly", l"Time", l"{0} sec".format(eventPlayer.T)), HudPosition.LEFT, 0, Color.PURPLE, HudReeval.STRING, SpecVisibility.DEFAULT)
+    hudHeader(eventPlayer, eventPlayer.R, HudPosition.RIGHT, 0, Color.PURPLE, HudReeval.STRING, SpecVisibility.DEFAULT)
+
+
+rule "------------CONSTANTS---------------":
+
+
+rule "ZARYA GRAV CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.ZARYA
+    
+    eventPlayer.S = 25
+    eventPlayer.H = 1.5
+    eventPlayer.G = 10.5
+    eventPlayer.L = 6
+
+
+rule "ORISA SHIELD CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.ORISA
+    
+    eventPlayer.S = 25
+    eventPlayer.H = 1.5
+    eventPlayer.G = 10.5
+    eventPlayer.L = 3
+
+
+rule "ANA CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.ANA
+    
+    eventPlayer.S = 30
+    eventPlayer.H = 1
+    eventPlayer.G = 9.806
+    eventPlayer.L = 4
+
+
+rule "----------MATH---------------":
+
+
+rule "CALCULATE TRAJECTORY":
+    @Event eachPlayer
+    @Hero all
+    
+    eventPlayer.A = eventPlayer.S * -1 * sinDeg(eventPlayer.getVerticalFacingAngle())
+    eventPlayer.B = sqrt(eventPlayer.A * eventPlayer.A)
+    eventPlayer.C = 2 * eventPlayer.G * eventPlayer.H
+    eventPlayer.T = (eventPlayer.A + (sqrt(eventPlayer.A * eventPlayer.A + eventPlayer.C))) / eventPlayer.G
+    eventPlayer.O = eventPlayer.S * cosDeg(eventPlayer.getVerticalFacingAngle())
+    eventPlayer.R = eventPlayer.O * eventPlayer.T
+    #eventPlayer.R = eventPlayer.S ** 2 * (sinDeg(eventPlayer.getVerticalFacingAngle() * -2)) / eventPlayer.G
+    L = eventPlayer.getPosition() + normalize(eventPlayer.getFacingDirection() * vect(1, 0, 1)) * eventPlayer.R
+    H = raycast(L + 100 * Vector.UP, L, getAllPlayers(), eventPlayer, true).getHitPosition()
+    wait()
+    goto RULE_START
+
+
+rule "--------------EFFECTS------------------":
+
+
+rule "LANDING POINT EFFECT":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isUsingAbility2() == true
+    
+    destroyEffect(eventPlayer.E)
+    destroyEffect(eventPlayer.F)
+    P = L
+    createEffect(getAllPlayers(), Effect.RING, Color.GREEN, P + vect(0, 0, 0), eventPlayer.L, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.E = getLastCreatedEntity()
+    createEffect(getAllPlayers(), Effect.SPHERE, Color.GREEN, eventPlayer.P + vect(0, 0.5, 0), 0.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.F = getLastCreatedEntity()
+
+
+rule "AIM EFFECT":
+    @Event eachPlayer
+    @Hero all
+    
+    createEffect(getAllPlayers(), Effect.SPHERE, Color.PURPLE, L + vect(0, 0.5, 0), 0.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.RING, Color.PURPLE, L + vect(0, 0, 0), eventPlayer.L, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.RING, Color.PURPLE, L + vect(0, -1.5, 0), eventPlayer.L, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.RING, Color.PURPLE, L + vect(0, 1.5, 0), eventPlayer.L, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.SPHERE, Color.PURPLE, H + vect(0, 0.5, 0), 0.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
+
+rule "RAY CAST COLLISION CHECK":
+    @Event eachPlayer
+    @Hero all
+    
+    eventPlayer.F = raycast(eventPlayer.getEyePosition(), eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 100, getAllPlayers(), eventPlayer, true).getHitPosition()
+    wait()
+    goto RULE_START
+
+
+rule "-------------CAMERAS--------------":
+
+
+rule "START cAMERA 1":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.Z != true
+    @Condition eventPlayer.getVerticalFacingAngle() < 0
+    
+    wait(0.25)
+    eventPlayer.Z = true
+    eventPlayer.startCamera(L + normalize(eventPlayer.getFacingDirection() * vect(-1, 0, -1)) * 10 + Vector.UP * eventPlayer.U, L + vect(0, 1, 0), 25)
+    eventPlayer.disallowButton(Button.CROUCH)
+    eventPlayer.disallowButton(Button.JUMP)
+
+
+rule "LEAVE CAMERA 1":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.Z == true
+    
+    wait(0.25)
+    eventPlayer.Z = false
+    eventPlayer.stopCamera()
+    eventPlayer.allowButton(Button.CROUCH)
+    eventPlayer.allowButton(Button.JUMP)
+
+
+rule "CROUCH TO ZOOMOUT":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.CROUCH) == true
+    
+    eventPlayer.U -= 0.2
+    wait()
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "JUMP TO ZOOMIN":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.JUMP) == true
+    
+    eventPlayer.U += 0.2
+    wait()
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "----------LYM---------COLLISION MARKER--------------":
+
+
+rule "Loop":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.ANA
+    
+    if eventPlayer.I < 6.5 or eventPlayer.W:
+        goto lbl_0
+    eventPlayer.I = 0
+    lbl_0:
+    eventPlayer.J = eventPlayer.getPosition() + Vector.UP + eventPlayer.getFacingDirection() * 40 * eventPlayer.I + Vector.DOWN * 8.75 * eventPlayer.I ** 2
+    eventPlayer.K = eventPlayer.getPosition() + Vector.UP + (eventPlayer.getFacingDirection() * 40 * (eventPlayer.I + 0.05)) + (Vector.DOWN * 8.75 * ((eventPlayer.I + 0.05) ** 2))
+    if isInLoS(eventPlayer.J, eventPlayer.K, BarrierLos.PASS_THROUGH_BARRIERS):
+        goto lbl_1
+    eventPlayer.N = raycast(eventPlayer.J, eventPlayer.K, null, null, true).getHitPosition()
+    eventPlayer.D = eventPlayer.I
+    if eventPlayer.W:
+        goto lbl_2
+    eventPlayer.I = 0
+    lbl_1:
+    lbl_2:
+    wait()
+    goto RULE_START
+
+
+rule "Setup":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.ANA
+    
+    chase(eventPlayer.I, 20, rate=3, ChaseReeval.DESTINATION_AND_RATE)
+    createEffect([player for player in getAllPlayers() if eventPlayer.N != 0], Effect.SPHERE, Color.RED, eventPlayer.N, 0.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect([player for player in getAllPlayers() if eventPlayer.P != 0], Effect.SPHERE, Color.GREEN, eventPlayer.P, 0.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
+
+rule "Throw":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    @Condition eventPlayer.getCurrentHero() == Hero.ANA
+    
+    eventPlayer.P = eventPlayer.N
+    if not eventPlayer.Q:
+        return
+    eventPlayer.I = 0
+    chase(eventPlayer.I, 6.5, rate=1, ChaseReeval.DESTINATION_AND_RATE)
+    eventPlayer.startCamera(eventPlayer.getPosition() + Vector.UP + (eventPlayer.getFacingDirection() * 40 * (min(eventPlayer.I - 0.25, eventPlayer.D - 0.5))) + (Vector.DOWN * 8.75 * ((min(eventPlayer.I - 0.25, eventPlayer.D - 0.5)) ** 2)), eventPlayer.K, 0)
+    eventPlayer.W = true
+    wait(eventPlayer.D + 1.5)
+    eventPlayer.stopCamera()
+    chase(eventPlayer.I, 6.5, rate=3, ChaseReeval.DESTINATION_AND_RATE)
+    eventPlayer.W = false
+    eventPlayer.allowButton(Button.CROUCH)
+    eventPlayer.allowButton(Button.JUMP)
+
+
+rule "Toggle chase cam":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    @Condition eventPlayer.getCurrentHero() == Hero.ANA
+    
+    eventPlayer.Q = not eventPlayer.Q
+
+
+rule "--------------------NEW CONSTANTS---------------------":
+
+
+rule "ASHE DYNAMITE CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.ASHE
+    
+    eventPlayer.S = 27
+    eventPlayer.H = 1.2
+    eventPlayer.G = 9.806
+    eventPlayer.L = 5
+
+
+rule "BAPTISTE HEALING CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.BAPTISTE
+    
+    eventPlayer.S = 42
+    eventPlayer.H = 1.5
+    eventPlayer.G = 9.806
+    eventPlayer.L = 3
+
+
+rule "MEI ULT CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.MEI
+    
+    eventPlayer.S = 19.5
+    eventPlayer.H = 0
+    eventPlayer.G = 9.806
+    eventPlayer.L = 10
+
+
+rule "TORB ULT CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.TORBJORN
+    
+    eventPlayer.S = 40
+    eventPlayer.H = 0.5
+    eventPlayer.G = 30
+    eventPlayer.L = 2.5
+
+
+rule "Sombra trans CONSTANTS":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.SOMBRA
+    
+    eventPlayer.S = 17
+    eventPlayer.H = 0.5
+    eventPlayer.G = 9.806
+    eventPlayer.L = 2
+
+
+rule "Calculate Height":
+    @Event eachPlayer
+    @Hero all
+    
+    eventPlayer.H = distance(eventPlayer.getEyePosition(), raycast(eventPlayer.getEyePosition(), eventPlayer.getEyePosition() + vect(0, -3, 0), getAllPlayers(), eventPlayer, true).getHitPosition())
+    wait(1)
+    goto RULE_START
+
+
+rule "Junkrat":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.JUNKRAT
+    
+    eventPlayer.S = 25
+    eventPlayer.H = 0.5
+    eventPlayer.G = 13
+    eventPlayer.L = 2
+
+
+rule "Sigma":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getCurrentHero() == Hero.SIGMA
+    
+    #eventPlayer.S = 37
+    #eventPlayer.H = 4
+    #eventPlayer.G = 18
+    eventPlayer.L = 1.5
+    eventPlayer.S = 18
+    eventPlayer.G = 4.7
+
+
+/*
+rule "Debug TP on Havana":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    
+    eventPlayer.teleport(vect(218, 27, -25))
+*/
+
