@@ -1177,8 +1177,8 @@ rule ("Sleep Dart: Propel") {
         Event Ability == Button(Ability 1);
     }
     actions {
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 1, 0)), 7, To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To Player, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 1, 0)), 7, To Player, Cancel Contrary Motion);
     }
 }
 
