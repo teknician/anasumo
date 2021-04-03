@@ -1249,7 +1249,7 @@ rule ("Ultimate Ability: Increased Knockback") {
         All;
     }
     conditions {
-        Is Using Ultimate(Attacker) == True;
+        Is Using Ultimate(Event Player) == True;
     }
     actions {
         Set Player Variable(Event Player, ultMultiplier, 1.5);
