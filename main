@@ -1596,3 +1596,18 @@ rule ("Create Team when 2 Players confirmed") {
     }
 }
 
+rule ("Test Bots") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Game In Progress == True;
+    }
+    actions {
+        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+    }
+}
+
