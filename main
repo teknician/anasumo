@@ -1113,7 +1113,14 @@ rule ("Ammo allocation") {
                 Wait(0.016, Ignore Condition);
             End;
         End;
-        Wait(0.1, Ignore Condition);
+        If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
+            While(Or(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
+                Wait Until(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 1)), 2);
+                Set Ammo(Event Player, 0, 1);
+                Wait(0.016, Ignore Condition);
+            End;
+        End;
+        Wait(0.016, Ignore Condition);
         Loop;
     }
 }
@@ -1130,11 +1137,11 @@ rule ("Primary Fire: Friendly Impulse") {
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Add(Eye Position(Event Player), Facing Direction Of(Event Player)), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.2, Ignore Condition);
-        Apply Impulse(Event Player, Add(Eye Position(Event Player), Facing Direction Of(Event Player)), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.2, Ignore Condition);
-        Apply Impulse(Event Player, Add(Eye Position(Event Player), Facing Direction Of(Event Player)), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1233,8 +1240,8 @@ rule ("Sleep Dart: Propel Forward") {
         Is Button Held(Event Player, Button(Ability 1)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To Player, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 0.75, 0)), 7, To Player, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 0.75, 0)), 7, To World, Cancel Contrary Motion);
     }
 }
 
@@ -1282,7 +1289,7 @@ rule ("Melee KB") {
         Distance Between(Attacker, Victim) < 3;
     }
     actions {
-        Apply Impulse(Victim, Add(Facing Direction Of(Event Player), Vector(0, 0.75, 0)), 12, To Player, Cancel Contrary Motion);
+        Apply Impulse(Victim, Add(Facing Direction Of(Event Player), Vector(0, 0.75, 0)), 12, To World, Cancel Contrary Motion);
     }
 }
 
