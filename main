@@ -1,1 +1,1951 @@
 
+settings
+{
+	main
+	{
+		Description: "Doomfist Sumo Original (Version 4.4) This Code works for King's Row and Workshop Island! Original knockback stun and knockdown settings. Join our Discord Server for new Versions and Tournaments! (https://discord.gg/7dYEfzh) { Made by Crebos }"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Map Rotation: Paused
+		Match Voice Chat: Enabled
+		Max FFA Players: 8
+		Max Spectators: 6
+		Return To Lobby: Never
+		Swap Teams After Match: No
+	}
+
+	modes
+	{
+		Deathmatch
+		{
+			Game Length In Minutes: 15
+			Score To Win: 25
+			Self Initiated Respawn: Off
+
+			enabled maps
+			{
+				King's Row
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Score To Win: 3
+			Self Initiated Respawn: Off
+		}
+
+		General
+		{
+			Allow Hero Switching: Off
+			Enemy Health Bars: Off
+			Game Mode Start: Immediately
+			Hero Limit: Off
+			Respawn As Random Hero: On
+			Spawn Health Packs: Disabled
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Damage Dealt: 10%
+			Damage Received: 10%
+			Health: 500%
+			Primary Fire: Off
+
+			Doomfist
+			{
+				Damage Dealt: 10%
+				Damage Received: 10%
+				Health: 500%
+				No Ammunition Requirement: On
+				Primary Fire: Off
+				Rising Uppercut Cooldown Time: 80%
+				Rocket Punch Cooldown Time: 60%
+				Rocket Punch Knockback Scalar: 140%
+				Seismic Slam Cooldown Time: 60%
+				Ultimate Generation - Combat Meteor Strike: 0%
+				Ultimate Generation - Passive Meteor Strike: 0%
+				Ultimate Generation Meteor Strike: 10%
+			}
+
+			Sombra
+			{
+				Damage Dealt: 10%
+				Stealth: Off
+				Translocator: Off
+				Ultimate Ability EMP: Off
+			}
+
+			enabled heroes
+			{
+				Doomfist
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: searchForMate
+		1: gameArrayOfRadii
+		2: matchStatus
+		3: nextMatchStatus
+		4: initiatedStart
+		5: oneVoneMode
+		6: oneVoneEffects
+		7: mode
+		8: dynamicTeams
+		9: freePlayers
+		10: retryDynamic
+		11: scoreType
+		12: inMenuText
+		13: sphereVisibleTo
+		14: customTeamMode
+		15: tempplayer
+		16: customTeam
+		17: iterator
+		18: gameArrayVector
+		19: menuArrayVector
+		20: menuSize
+		21: menuVisibility
+		22: mapHeight
+		23: circleSpawning
+		24: cornerSpawning
+		25: totalRounds
+
+	player:
+		0: active
+		1: kills
+		2: deathEffect
+		3: roundsWon
+		4: roundsPlayed
+		5: score
+		6: killer
+		7: teammate
+		8: mateHUD
+		9: cornerSpawnRequest
+}
+
+disabled rule("### Gamemode by Crebos, Idea by Calcuminium, Version 4.4, Have Fun :) ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("### IF YOU INTEND TO CHANGE SETTINGS OR CODE, PLEASE NOTE IN THE DESCRIPTION ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+disabled rule("### Variables declaration ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Global Variables; Vectors and Radii, Visibilities, mode, gameStatus, initiatedStart, menuSize, cornerSpawning")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.gameArrayVector = Empty Array;
+		Global.menuArrayVector = Empty Array;
+		Global.gameArrayOfRadii = Empty Array;
+		Global.sphereVisibleTo = Empty Array;
+		Global.menuVisibility = Empty Array;
+		Global.mode = 0;
+		Global.cornerSpawning = False;
+		"Set current round to lobby"
+		Global.matchStatus = 0;
+		"Set next round to restart"
+		Global.nextMatchStatus = 2;
+		Global.initiatedStart = False;
+		Global.menuSize = 1;
+		Global.circleSpawning = False;
+		Global.totalRounds = 0;
+	}
+}
+
+rule("PlayerVariables; active, Kills, DeathEffect, RoundsWon, PlayedRounds, Score, Killer")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.mode == 0;
+	}
+
+	actions
+	{
+		Event Player.active = False;
+		Event Player.kills = 0;
+		Event Player.deathEffect = Null;
+		Event Player.roundsWon = 0;
+		Event Player.roundsPlayed = 0;
+		Event Player.score = 0;
+		Event Player.killer = Null;
+		Event Player.cornerSpawnRequest = False;
+	}
+}
+
+rule("Values for Map King's Row")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		(Current Map == Map(King's Row) || Current Map == Map(King's Row Winter)) == True;
+	}
+
+	actions
+	{
+		"Platform Center"
+		Modify Global Variable(gameArrayVector, Append To Array, Vector(-20.749, 40.686, -74.843));
+		Modify Global Variable(gameArrayVector, Append To Array, Vector(-16.727, 32, -52.146));
+		"corner Spawn 1"
+		Modify Global Variable(gameArrayVector, Append To Array, Vector(-32.809, 40.690, -63.220));
+		"corner spawn 2"
+		Modify Global Variable(gameArrayVector, Append To Array, Vector(-11.422, 40.688, -83.778));
+		"Main Sphere Size"
+		Modify Global Variable(gameArrayOfRadii, Append To Array, 29);
+		"Tower Sphere Size"
+		Modify Global Variable(gameArrayOfRadii, Append To Array, 7);
+		"Menuitem Start Normal Game"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-16.971, 40.688, -80.575));
+		"Menuitem Start Team Game"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-24.481, 40.687, -79.985));
+		"Menuitem assign Teams"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-27.050, 40.688, -76.896));
+		"Menuitem Score decrease"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-19.441, 40.688, -70.184));
+		"Menuitem Score Increase"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-16.938, 40.688, -73.203));
+		"Menuitem Score infinity"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-23.352, 40.688, -71.190));
+		Global.mapHeight = 37.600;
+	}
+}
+
+rule("Values for Map Workshop Island")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Current Map == Map(Workshop Island);
+	}
+
+	actions
+	{
+		"Platform Center"
+		Modify Global Variable(gameArrayVector, Append To Array, Vector(0, 0, 0));
+		"Main Sphere Size"
+		Modify Global Variable(gameArrayOfRadii, Append To Array, 29);
+		"Menuitem Start Normal Game"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(4.907, 1.499, 7.646));
+		"Menuitem Start Team Game"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(0.246, 1.499, 7.646));
+		"Menuitem assign Teams"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(-6.718, 1.499, 4.365));
+		"Menuitem Score decrease"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(7.057, 1.499, -4.097));
+		"Menuitem Score Increase"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(4.385, 1.499, -8.197));
+		"Menuitem Score infinity"
+		Modify Global Variable(menuArrayVector, Append To Array, Vector(8.436, 1.498, -0.129));
+		Global.mapHeight = -0.500;
+	}
+}
+
+disabled rule("### Setup ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Disable Announcer, Music, Completion, Scoring, Match Time")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Built-In Game Mode Announcer;
+		Disable Built-In Game Mode Music;
+		Disable Built-In Game Mode Completion;
+		Disable Built-In Game Mode Scoring;
+		Set Match Time(0);
+	}
+}
+
+rule("Reset Timer when under one minute")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Match Time <= 60;
+	}
+
+	actions
+	{
+		Set Match Time(900);
+	}
+}
+
+disabled rule("### Visuals and VisualsCommands ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Sphere Visuals")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		disabled For Global Variable(iterator, 0, Count Of(Global.gameArrayVector), 1);
+		disabled Create Effect(Global.sphereVisibleTo, Sphere, Color(Purple), Global.gameArrayVector[Global.iterator],
+			Global.gameArrayOfRadii[Global.iterator], Visible To Position and Radius);
+		disabled End;
+		disabled Create Effect(Global.sphereVisibleTo, Sphere, Color(Sky Blue), Global.gameArrayVector[0], Global.gameArrayOfRadii[0],
+			Visible To Position and Radius);
+		disabled Create Effect(Global.sphereVisibleTo, Sphere, Color(Sky Blue), Global.gameArrayVector[1], Global.gameArrayOfRadii[1],
+			Visible To Position and Radius);
+		Create Effect(Global.sphereVisibleTo, Sphere, Color(White), Global.gameArrayVector[0], Global.gameArrayOfRadii[0],
+			Visible To Position and Radius);
+		Create Effect(Global.sphereVisibleTo, Sphere, Color(White), Global.gameArrayVector[1], Global.gameArrayOfRadii[1],
+			Visible To Position and Radius);
+	}
+}
+
+rule("Add Player SphereVisibility (Jump + Interact)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Button Held(Event Player, Button(Jump)) == True;
+		Array Contains(Global.sphereVisibleTo, Event Player) == False;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Modify Global Variable(sphereVisibleTo, Append To Array, Event Player);
+		Small Message(Event Player, Custom String("Sphere visibility enabled!"));
+	}
+}
+
+rule("Remove Player Sphere Visility (Jump + Interact)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Button Held(Event Player, Button(Jump)) == True;
+		Array Contains(Global.sphereVisibleTo, Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Modify Global Variable(sphereVisibleTo, Remove From Array By Value, Event Player);
+		Small Message(Event Player, Custom String("Sphere visibility disabled!"));
+	}
+}
+
+rule("Player HUD Normal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"statistics"
+		Create HUD Text(Event Player, String("{0}: {1}", String("Remaining"), Number Of Living Players(All Teams)), Null, Null, Left, 1,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0}: {1}", Custom String("Score to win"), Global.scoreType), Null, Null, Left, 2, Color(
+			Aqua), Color(Aqua), Color(Aqua), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0}: {1}", String("Score"), Score Of(Event Player)), Null, Null, Left, 3, Color(Blue), Color(
+			Blue), Color(Blue), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0}: {1}", String("Rounds Won"), Event Player.roundsWon), Null, Null, Left, 4, Color(Green),
+			Color(Green), Color(Green), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0}: {1}", String("{0} {1}", String("Rounds"), String("Played")), Event Player.roundsPlayed),
+			Null, Null, Left, 5, Color(Orange), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0}: {1}", String("Eliminations"), Event Player.kills), Null, Null, Left, 6, Color(Red),
+			Color(Red), Color(Red), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0}: {1}", Custom String("Corner Request"), Event Player.cornerSpawnRequest), Null, Null,
+			Left, 7, Color(Orange), Color(Orange), Color(Orange), Visible To and String, Default Visibility);
+		"commands"
+		Create HUD Text(Event Player, Null, Null, Custom String("Corner Spawning toggle: Hold Q + F / ultimate + interact"), Right, 8,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, Null, Custom String("Sphere Visibility toggle: Hold SPACE + F / Jump + Interact"), Right, 9,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("Player HUD for Host (statistics)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player == Host Player;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Null, Custom String("GENERAL GAME INFO"), Null, Right, 20, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("Gamemode"), Global.mode), Null, Right, 21, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, Custom String("TEAM GAME INFO"), Null, Right, 22, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("List of FreePlayers"), Global.freePlayers), Null, Right, 23,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("CustomTeamMode"), Global.customTeamMode), Null, Right, 24,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("tempplayer"), Global.tempplayer), Null, Right, 25, Color(
+			White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+disabled rule("### Lobby Things ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Setup Menu Visuals")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		"Draw each ball"
+		disabled For Global Variable(iterator, 0, Count Of(Global.menuArrayVector), 1);
+		disabled Create Effect(Global.menuVisibility, Sphere, Color(Green), Global.menuArrayVector[Global.iterator], Global.menuSize,
+			Visible To Position and Radius);
+		disabled End;
+		"manual balls"
+		Create Effect(Global.menuVisibility, Sphere, Color(Lime Green), Global.menuArrayVector[0], Global.menuSize,
+			Visible To Position and Radius);
+		Create Effect(Global.menuVisibility, Sphere, Color(Green), Global.menuArrayVector[1], Global.menuSize,
+			Visible To Position and Radius);
+		Create Effect(Global.menuVisibility, Sphere, Color(Green), Global.menuArrayVector[2], Global.menuSize,
+			Visible To Position and Radius);
+		Create Effect(Global.menuVisibility, Sphere, Color(Green), Global.menuArrayVector[3], Global.menuSize,
+			Visible To Position and Radius);
+		Create Effect(Global.menuVisibility, Sphere, Color(Green), Global.menuArrayVector[4], Global.menuSize,
+			Visible To Position and Radius);
+		Create Effect(Global.menuVisibility, Sphere, Color(Green), Global.menuArrayVector[5], Global.menuSize,
+			Visible To Position and Radius);
+		"Texts"
+		Create In-World Text(Global.menuVisibility, Custom String("Start Normal Game"), Global.menuArrayVector[0], Global.menuSize,
+			Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+		Create In-World Text(Global.menuVisibility, Custom String("Start Team Game"), Global.menuArrayVector[1], Global.menuSize,
+			Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+		Create In-World Text(Global.menuVisibility, Custom String("Assign Teams"), Global.menuArrayVector[2], Global.menuSize,
+			Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+		Create In-World Text(Global.menuVisibility, Custom String("-10 Score"), Global.menuArrayVector[3], Global.menuSize,
+			Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+		Create In-World Text(Global.menuVisibility, Custom String("+10 Score"), Global.menuArrayVector[4], Global.menuSize,
+			Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+		Create In-World Text(Global.menuVisibility, Custom String("Infinite Score"), Global.menuArrayVector[5], Global.menuSize,
+			Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+	}
+}
+
+rule("Hostplayer summon Lobby (CTRL + F / Crouch + Interact)")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Crouch)) == True;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.matchStatus != 0;
+	}
+
+	actions
+	{
+		Global.nextMatchStatus = 0;
+		Small Message(Host Player, Custom String("Back to Lobby after this Round"));
+	}
+}
+
+rule("Respawn when dead on Lobby")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Global.gameArrayVector[0]);
+		Resurrect(Event Player);
+	}
+}
+
+rule("Game Lobby all Players")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Wait(0.500, Ignore Condition);
+		Event Player.active = False;
+		Teleport(Event Player, Global.gameArrayVector[0]);
+		Resurrect(Event Player);
+		Event Player.kills = 0;
+		Event Player.roundsWon = 0;
+		Event Player.roundsPlayed = 0;
+		Event Player.score = 0;
+		Set Player Score(Event Player, Event Player.score);
+		Modify Global Variable(menuVisibility, Append To Array, Event Player);
+	}
+}
+
+rule("Game Lobby Hostplayer phasing toggle")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Host Player == Event Player;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		If(Has Status(Event Player, Phased Out));
+			Clear Status(Event Player, Phased Out);
+			Small Message(Event Player, Custom String("Phased out disabled!"));
+		Else;
+			Set Status(Event Player, Null, Phased Out, 9999);
+			Small Message(Event Player, Custom String("Phased out enabled!"));
+		End;
+	}
+}
+
+rule("Disable Lobby visibility")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.matchStatus != 0;
+		Global.menuVisibility != Empty Array;
+	}
+
+	actions
+	{
+		Global.menuVisibility = Empty Array;
+	}
+}
+
+rule("Menuitem Start Normal Game")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Host Player, Global.menuArrayVector[0]) <= Global.menuSize + 2;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Global.mode = 0;
+		Set Status(All Players(All Teams), Null, Rooted, 2);
+		Big Message(All Players(All Teams), Custom String("Normal Game Starting"));
+		Wait(2, Ignore Condition);
+		Global.nextMatchStatus = 2;
+		Global.matchStatus = Global.nextMatchStatus;
+		Clear Status(All Players(All Teams), Phased Out);
+		Clear Status(All Players(All Teams), Rooted);
+		Set Ability 1 Enabled(Host Player, True);
+		Set Secondary Fire Enabled(Host Player, True);
+	}
+}
+
+rule("Menuitem Start Team Game")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Host Player, Global.menuArrayVector[1]) <= Global.menuSize + 2;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		All Players(All Teams) != 2;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Global.mode = 1;
+		Global.dynamicTeams = True;
+		Global.retryDynamic = True;
+		Set Status(All Players(All Teams), Null, Rooted, 2);
+		Big Message(All Players(All Teams), Custom String("Team Game Starting"));
+		Wait(2, Ignore Condition);
+		Global.nextMatchStatus = 2;
+		Global.matchStatus = Global.nextMatchStatus;
+		Clear Status(All Players(All Teams), Phased Out);
+		Clear Status(All Players(All Teams), Rooted);
+		Set Ability 1 Enabled(Host Player, True);
+		Set Secondary Fire Enabled(Host Player, True);
+	}
+}
+
+rule("Menuitem Assign Teams")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Host Player, Global.menuArrayVector[2]) <= Global.menuSize + 2;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Global.mode = 1;
+		Global.searchForMate = True;
+		Big Message(All Players(All Teams), Custom String("To form a Team, you have to punch each other! 10 seconds left!"));
+		Wait(5, Ignore Condition);
+		Big Message(All Players(All Teams), Custom String("5 seconds left!"));
+		Wait(5, Ignore Condition);
+		Big Message(All Players(All Teams), Custom String("Teams have been made"));
+		Global.searchForMate = False;
+	}
+}
+
+rule("Menuitem Score remove 10")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Host Player, Global.menuArrayVector[3]) <= Global.menuSize + 2;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Global.scoreType = Global.scoreType - 10;
+		Small Message(Host Player, String("{0}: {1}", Custom String("Success ScoreType"), Global.scoreType));
+	}
+}
+
+rule("Menuitem Score add 10")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Host Player, Global.menuArrayVector[4]) <= Global.menuSize + 2;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Global.scoreType = Global.scoreType + 10;
+		Small Message(Host Player, String("{0}: {1}", Custom String("Success ScoreType"), Global.scoreType));
+	}
+}
+
+rule("Menuitem Score Infinite")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Host Player, Global.menuArrayVector[5]) <= Global.menuSize + 2;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.matchStatus == 0;
+	}
+
+	actions
+	{
+		Global.scoreType = 0;
+		Small Message(Host Player, String("{0}: {1}", Custom String("Success ScoreType"), Global.scoreType));
+	}
+}
+
+disabled rule("### Round events ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("1 vs 1 mode on Normal Mode")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Living Players(All Teams) <= Absolute Value(2);
+		Global.oneVoneMode == False;
+		Global.matchStatus == 1;
+		Global.mode == 0;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		Global.oneVoneMode = True;
+		Big Message(All Players(All Teams), String("{0} vs {1}", All Living Players(All Teams)[0], All Living Players(All Teams)[1]));
+		If(All Living Players(All Teams)[0].cornerSpawnRequest == True && All Living Players(All Teams)[1].cornerSpawnRequest == True);
+			Global.cornerSpawning = True;
+			Small Message(All Players(All Teams), Custom String("Corner Spawning .."));
+			Set Status(All Living Players(All Teams), Null, Unkillable, 3);
+			Set Status(All Living Players(All Teams), Null, Rooted, 3);
+			Wait(2, Ignore Condition);
+			Teleport(All Living Players(All Teams)[0], Global.gameArrayVector[2]);
+			Teleport(All Living Players(All Teams)[1], Global.gameArrayVector[3]);
+			Set Status(All Living Players(All Teams), Null, Frozen, 1);
+			Global.cornerSpawning = False;
+		End;
+	}
+}
+
+rule("1 vs 1 mode off Normal Mode")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		(Number Of Living Players(All Teams) > 2 || Global.matchStatus == 0) == True;
+		Global.oneVoneMode == True;
+		Global.mode == 0;
+	}
+
+	actions
+	{
+		Wait(0.500, Abort When False);
+		Global.oneVoneMode = False;
+	}
+}
+
+rule("1 vs 1 mode on Team Mode")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Living Players(All Teams) <= Absolute Value(4);
+		Global.oneVoneMode == False;
+		Global.matchStatus == 1;
+		Global.mode == 1;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		Global.oneVoneMode = True;
+	}
+}
+
+rule("1 vs 1 mode off Team Mode")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.oneVoneMode == True;
+		(Number Of Living Players(All Teams) > 4 || Global.matchStatus == 0) == True;
+		Global.mode == 1;
+	}
+
+	actions
+	{
+		Wait(0.500, Abort When False);
+		Global.oneVoneMode = False;
+	}
+}
+
+rule("When 1 v 1 gets Enabled")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Global.oneVoneMode == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(All Living Players(All Teams), 100);
+		Set Ability 2 Enabled(All Living Players(All Teams), True);
+		Create Effect(All Players(All Teams), Cloud, Color(White), Global.gameArrayVector[0], Global.gameArrayOfRadii[0],
+			Visible To Position and Radius);
+		Global.oneVoneEffects = Last Created Entity;
+	}
+}
+
+rule("When 1 v 1 gets Disabled")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Global.oneVoneMode == False;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(All Players(All Teams), 0);
+		Set Ability 2 Enabled(All Players(All Teams), False);
+		Destroy Effect(Global.oneVoneEffects);
+	}
+}
+
+rule("Toggle Corner spawn request")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Event Player.cornerSpawnRequest = !Event Player.cornerSpawnRequest;
+		Small Message(Event Player, String("{0} {1}", Custom String("Corner spawn request: "), Event Player.cornerSpawnRequest));
+	}
+}
+
+rule("Circle Spawning")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.circleSpawning == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(X Component Of(Global.gameArrayVector[0]) + 8 * Cosine From Degrees((Index Of Array Value(
+			All Players(All Teams), Event Player) + Global.totalRounds) * (360 / Number Of Players(All Teams))), Y Component Of(
+			Global.gameArrayVector[0]), Z Component Of(Global.gameArrayVector[0]) + 8 * Sine From Degrees((Index Of Array Value(
+			All Players(All Teams), Event Player) + Global.totalRounds) * (360 / Number Of Players(All Teams)))));
+	}
+}
+
+rule("Start Round and Ressurect")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.matchStatus == 2;
+		Global.initiatedStart == False;
+	}
+
+	actions
+	{
+		Global.initiatedStart = True;
+		All Players(All Teams).active = True;
+		Global.oneVoneMode = True;
+		All Players(All Teams).roundsPlayed += 1;
+		Global.totalRounds += 1;
+		Wait(0.010, Ignore Condition);
+		Global.oneVoneMode = False;
+		Global.circleSpawning = True;
+		Resurrect(All Players(All Teams));
+		Set Status(All Players(All Teams), Null, Rooted, 4);
+		Set Status(All Players(All Teams), Null, Frozen, 4);
+		Global.matchStatus = 1;
+		Global.initiatedStart = False;
+		Wait(4, Ignore Condition);
+		Global.circleSpawning = False;
+	}
+}
+
+rule("End Round Mode 0")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Living Players(All Teams) <= 1;
+		Number Of Dead Players(All Teams) >= 1;
+		Global.matchStatus == 1;
+		Global.initiatedStart == False;
+		Global.mode == 0;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		All Living Players(All Teams).roundsWon += 1;
+		Big Message(All Players(All Teams), String("{0} {1}", All Living Players(All Teams), String("Wins")));
+		Set Ultimate Charge(All Players(All Teams), 0);
+		Wait(4, Ignore Condition);
+		Global.matchStatus = Global.nextMatchStatus;
+		Set Match Time(900);
+	}
+}
+
+rule("End Round Mode 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Living Players(All Teams) <= 2;
+		Number Of Dead Players(All Teams) >= 1;
+		Global.matchStatus == 1;
+		Global.initiatedStart == False;
+		Global.mode == 1;
+		(All Living Players(All Teams)[0] == All Living Players(All Teams)[1].teammate || Number Of Living Players(All Teams) <= 1)
+			== True;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		All Living Players(All Teams)[0].roundsWon += 1;
+		All Living Players(All Teams)[0].teammate.roundsWon += 1;
+		Big Message(All Players(All Teams), String("{0} {1}", String("{0} and {1}", All Living Players(All Teams)[0], All Living Players(
+			All Teams)[0].teammate), String("Win")));
+		Set Ultimate Charge(All Players(All Teams), 0);
+		Wait(4, Ignore Condition);
+		Global.matchStatus = Global.nextMatchStatus;
+		Set Match Time(900);
+	}
+}
+
+disabled rule("### Kill Players out of Range ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Kill Player out of Sphere 1 (All Maps)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Global.gameArrayVector[0]) >= Global.gameArrayOfRadii[0];
+		Is Using Ultimate(Event Player) == False;
+		Global.cornerSpawning == False;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		Kill(Event Player, Event Player.killer);
+	}
+}
+
+rule("Kill Player inside Sphere 2 (King's Row)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Global.gameArrayVector[1]) <= Global.gameArrayOfRadii[1];
+		(Current Map == Map(King's Row) || Current Map == Map(King's Row Winter)) == True;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		Kill(Event Player, Event Player.killer);
+	}
+}
+
+rule("Kill Player when on invi platform (King's Row)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Y Component Of(Position Of(Event Player)) <= 37.510;
+		Y Component Of(Position Of(Event Player)) >= 36.510;
+		Is Alive(Event Player) == True;
+		(Current Map == Map(King's Row) || Current Map == Map(King's Row Winter)) == True;
+		Global.cornerSpawning == False;
+		Is Using Ultimate(Event Player) == False;
+	}
+
+	actions
+	{
+		Wait(2, Abort When False);
+		Big Message(Event Player, String("Not Today"));
+		Kill(Event Player, Event Player.killer);
+	}
+}
+
+rule("Kill Player when below map height for more than 5 seconds (All maps)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Y Component Of(Position Of(Event Player)) <= Global.mapHeight;
+		Is Alive(Event Player) == True;
+		Global.cornerSpawning == False;
+		Is Using Ultimate(Event Player) == False;
+	}
+
+	actions
+	{
+		Wait(4, Abort When False);
+		Big Message(Event Player, Custom String("Get back to platform or die"));
+		Wait(2, Abort When False);
+		Kill(Event Player, Event Player.killer);
+	}
+}
+
+rule("Kill Player when not involved in Round")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.active == False;
+		Global.matchStatus == 1;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		Kill(Event Player, Null);
+		Disable Built-In Game Mode Respawning(Event Player);
+		Enable Death Spectate All Players(Event Player);
+		Enable Death Spectate Target HUD(Event Player);
+	}
+}
+
+rule("Events when player dies and active")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.active == True;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Bad Aura, Color(Orange), Position Of(Event Player), 1, Visible To);
+		Event Player.deathEffect = Last Created Entity;
+		Event Player.active = False;
+		Wait(2, Ignore Condition);
+		Destroy Effect(Event Player.deathEffect);
+		Event Player.deathEffect = Null;
+		Disable Built-In Game Mode Respawning(Event Player);
+		Enable Death Spectate All Players(Event Player);
+		Enable Death Spectate Target HUD(Event Player);
+	}
+}
+
+rule("Kill Counter")
+{
+	event
+	{
+		Player Earned Elimination;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.matchStatus == 1;
+	}
+
+	actions
+	{
+		Event Player.kills += 1;
+	}
+}
+
+disabled rule("### Scoring ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("When Score below 0 -> set 0")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.scoreType < 0;
+	}
+
+	actions
+	{
+		Global.scoreType = 0;
+	}
+}
+
+rule("After Round calculate Skill rating (Infinite Match)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.matchStatus == 2;
+		Global.scoreType == 0;
+		Global.initiatedStart == False;
+	}
+
+	actions
+	{
+		Event Player.score = Event Player.roundsWon / Event Player.roundsPlayed * 100;
+		Set Player Score(Event Player, Event Player.score);
+	}
+}
+
+rule("After Round set Scoring (limited Points)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.matchStatus == 2;
+		Global.scoreType > 0;
+		Global.initiatedStart == False;
+	}
+
+	actions
+	{
+		Set Player Score(Event Player, Event Player.roundsWon);
+	}
+}
+
+rule("Declare win (limited Points)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.scoreType > 0;
+		Event Player.roundsWon >= Global.scoreType;
+	}
+
+	actions
+	{
+		Declare Player Victory(Event Player);
+	}
+}
+
+disabled rule("### Doomfist Modifications ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Seismic Slam: stun for 2 secs")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Attacker) == True;
+		Attacker.teammate != Victim;
+	}
+
+	actions
+	{
+		Set Status(Victim, Null, Stunned, 2);
+	}
+}
+
+rule("Ultimate Ability: knockdown for 3 secs")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Attacker) == True;
+		Attacker.teammate != Victim;
+	}
+
+	actions
+	{
+		Set Status(Victim, Null, Knocked Down, 3);
+	}
+}
+
+rule("Register last PlayerDealtDamage as Killer")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.killer = Null;
+		Wait(0.010, Ignore Condition);
+		Event Player.killer = Attacker;
+	}
+}
+
+rule("Decay Killer status after 5 secs")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.killer != Null;
+		Is Game In Progress == True;
+		Global.searchForMate == False;
+	}
+
+	actions
+	{
+		Wait(5, Abort When False);
+		Event Player.killer = Null;
+	}
+}
+
+rule("Enable primary fire while ulting")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Primary Fire Enabled(Event Player, True);
+	}
+}
+
+rule("Disable primary fire after ulting")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == False;
+	}
+
+	actions
+	{
+		Set Primary Fire Enabled(Event Player, False);
+	}
+}
+
+disabled rule("### Team Mode ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Global Variables Team")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.mode != 1;
+	}
+
+	actions
+	{
+		All Players(All Teams).teammate = Null;
+		Destroy HUD Text(All Players(All Teams).mateHUD);
+		All Players(All Teams).mateHUD = Null;
+		Global.dynamicTeams = False;
+		Global.freePlayers = Empty Array;
+		Global.retryDynamic = False;
+		Global.customTeamMode = False;
+		Global.customTeam = Empty Array;
+		Global.tempplayer = Null;
+		Global.searchForMate = False;
+	}
+}
+
+rule("Draw Teammate Hud for each player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.mode == 1;
+		Event Player.mateHUD == Null;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0}: {1}", Custom String("Teammate"), Event Player.teammate), Null, Null, Left, 7, Color(
+			Sky Blue), Color(Red), Color(Red), Visible To and String, Default Visibility);
+		Event Player.mateHUD = Last Text ID;
+	}
+}
+
+rule("When Dynamic Teams Enabled Player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.dynamicTeams == True;
+		Event Player.teammate == Null;
+		Array Contains(Global.freePlayers, Event Player) == False;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Modify Global Variable(freePlayers, Append To Array, Event Player);
+	}
+}
+
+rule("When Dynamic Teams Disabled Player")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Null, Custom String("Made by Crebos, Version 4.4"), Null, Right, 10, Color(White), Color(
+			White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("When Dynamic Teams Enabled Global")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.dynamicTeams == True;
+		Global.retryDynamic == True;
+		Count Of(Global.freePlayers) >= 2;
+	}
+
+	actions
+	{
+		Global.retryDynamic = False;
+		Global.freePlayers[0].teammate = Global.freePlayers[1];
+		Global.freePlayers[1].teammate = Global.freePlayers[0];
+		Wait(0.100, Ignore Condition);
+		Global.retryDynamic = True;
+	}
+}
+
+rule("Release mated Players from FreePlayers List (Dynamic Teams)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.teammate != Null;
+		Array Contains(Global.freePlayers, Event Player) == True;
+	}
+
+	actions
+	{
+		Modify Global Variable(freePlayers, Remove From Array By Value, Event Player);
+	}
+}
+
+rule("Release Leaving Players from FreePlayers List (Dynamic Teams)")
+{
+	event
+	{
+		Player Left Match;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Array Contains(Global.freePlayers, Event Player) == True;
+	}
+
+	actions
+	{
+		Modify Global Variable(freePlayers, Remove From Array By Value, Event Player);
+	}
+}
+
+rule("Search for Mate")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.searchForMate == True;
+		Event Player.killer.killer == Event Player;
+	}
+
+	actions
+	{
+		Event Player.teammate = Null;
+		Wait(0.016, Ignore Condition);
+		Event Player.teammate = Event Player.killer;
+	}
+}
+
+rule("Teammate found")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.teammate != Null;
+	}
+
+	actions
+	{
+		Wait(0.500, Abort When False);
+		Small Message(Event Player, String("{0}: {1}", Custom String("Your Teammate is "), Event Player.teammate));
+	}
+}
+
+rule("Teammate effect")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.teammate != Null;
+	}
+
+	actions
+	{
+		Create In-World Text(Event Player.teammate, String("Teammate"), Event Player, 1, Clip Against Surfaces,
+			Visible To Position and String, Color(Green), Default Visibility);
+	}
+}
+
+rule("Teammate Lost")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.teammate == Null;
+	}
+
+	actions
+	{
+		Small Message(Event Player, Custom String("You have no Teammate"));
+	}
+}
+
+rule("Remove teammate reference when hes not ingame")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Array Contains(All Players(All Teams), Event Player.teammate) == False;
+	}
+
+	actions
+	{
+		Event Player.teammate = Null;
+	}
+}
+
+rule("Check for Team errors and delete them")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.teammate != Null;
+		Event Player.teammate.teammate != Event Player;
+	}
+
+	actions
+	{
+		Wait(0.500, Abort When False);
+		Event Player.teammate = Null;
+		Small Message(Host Player, Custom String("There has been a Team Error! But dont worry I fixed it :D"));
+	}
+}
+
+rule("Events when teammate dies")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.teammate != Null;
+	}
+
+	actions
+	{
+		Big Message(Event Player.teammate, Custom String("Your Teammate Died!"));
+	}
+}
+
+disabled rule("### Custom Team Mode ###")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("Activate customTeamMode (Ability 1 + Interact)")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Ability 1)) == True;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.mode == 1;
+		Global.customTeamMode == False;
+	}
+
+	actions
+	{
+		Global.customTeamMode = True;
+		Small Message(Host Player, Custom String("Custom Team Mode active! Select first Player"));
+		Set Status(Host Player, Null, Phased Out, 9999);
+		Create In-World Text(All Players(All Teams), Custom String("IN MENU UNKILLABLE"), Host Player, 1, Clip Against Surfaces,
+			Visible To Position and String, Color(Red), Default Visibility);
+		Global.inMenuText = Last Text ID;
+	}
+}
+
+rule("Cycle Tempplayer forward (Mouse1)")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Primary Fire)) == True;
+		Global.customTeamMode == True;
+		Index Of Array Value(All Players(All Teams), Global.tempplayer) < Count Of(All Players(All Teams)) - 1;
+	}
+
+	actions
+	{
+		Global.tempplayer = All Players(All Teams)[Index Of Array Value(All Players(All Teams), Global.tempplayer) + 1];
+		Small Message(Host Player, String("{0} {1}", Global.tempplayer, Custom String("selected")));
+	}
+}
+
+rule("Cycle Tempplayer backward (Mouse2)")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Secondary Fire)) == True;
+		Global.customTeamMode == True;
+		Index Of Array Value(All Players(All Teams), Global.tempplayer) > 0;
+	}
+
+	actions
+	{
+		Global.tempplayer = All Players(All Teams)[Index Of Array Value(All Players(All Teams), Global.tempplayer) - 1];
+		Small Message(Host Player, String("{0} {1}", Global.tempplayer, Custom String("selected")));
+	}
+}
+
+rule("Confirm Player add to Team")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Button Held(Host Player, Button(Ability 2)) == True;
+		Is Button Held(Host Player, Button(Interact)) == True;
+		Global.customTeamMode == True;
+		Global.tempplayer != Null;
+		Count Of(Global.customTeam) < 2;
+		Array Contains(Global.customTeam, Global.tempplayer) == False;
+	}
+
+	actions
+	{
+		Modify Global Variable(customTeam, Append To Array, Global.tempplayer);
+		Small Message(Host Player, String("{0} {1}", Global.tempplayer, Custom String(" Added")));
+		Wait(0.016, Ignore Condition);
+		Global.tempplayer = Null;
+	}
+}
+
+rule("Create Team when 2 Players confirmed")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.customTeamMode == True;
+		Count Of(Global.customTeam) == 2;
+	}
+
+	actions
+	{
+		Global.customTeam[0].teammate = Global.customTeam[1];
+		Global.customTeam[1].teammate = Global.customTeam[0];
+		Small Message(Host Player, String("{0} {1}", String("{0} and {1}", Global.customTeam[0], Global.customTeam[1]), Custom String(
+			" are in a Team")));
+		Wait(0.016, Ignore Condition);
+		Global.customTeamMode = False;
+		Global.customTeam = Empty Array;
+		Global.tempplayer = Null;
+		Clear Status(Host Player, Phased Out);
+		Destroy In-World Text(Global.inMenuText);
+	}
+}
+
+disabled rule("Test Bots")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Ana), All Teams, Count Of(All Players(All Teams)) + 1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ashe), All Teams, Count Of(All Players(All Teams)) + 1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), All Teams, Count Of(All Players(All Teams)) + 1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ashe), All Teams, Count Of(All Players(All Teams)) + 1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
