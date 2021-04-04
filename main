@@ -1112,7 +1112,7 @@ rule ("Ultimate Impulse") {
     }
     actions {
         Wait Until(Is Using Ultimate(Event Player), 99999);
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(6.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1295,6 +1295,7 @@ rule ("Primary Fire: Friendly Impulse") {
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(1, Ignore Condition);
     }
 }
 
@@ -1335,6 +1336,7 @@ rule ("Secondary Fire: Friendly Impulse") {
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(1, Ignore Condition);
     }
 }
 
@@ -1426,9 +1428,9 @@ rule ("Biotic Grenade: Enemy KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
+        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 7, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1804,4 +1806,3 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
-
