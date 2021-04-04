@@ -1125,7 +1125,7 @@ rule ("Ammo allocation") {
             Set Secondary Fire Enabled(Event Player, False);
             Wait(0.016, Ignore Condition);
             If(Compare((Event Player).primaryAmmo, ==, 1));
-                Skip(22);
+                Skip(26);
             Else If(Compare((Event Player).secondaryAmmo, ==, 1));
                 Skip(2);
             End;
@@ -1145,6 +1145,10 @@ rule ("Ammo allocation") {
                     Set Ammo(Event Player, 0, 2);
                     Set Primary Fire Enabled(Event Player, True);
                     Set Secondary Fire Enabled(Event Player, True);
+                Else If(And(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 0)));
+                    Set Ammo(Event Player, 0, 1);
+                    Set Primary Fire Enabled(Event Player, True);
+                    Set Secondary Fire Enabled(Event Player, False);
                 End;
                 Wait(0.016, Ignore Condition);
             End;
