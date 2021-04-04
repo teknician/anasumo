@@ -93,8 +93,7 @@ variables {
         25: totalRounds
         26: winner
         27: winners
-        28: gIndex
-        29: suddenDeath
+        28: suddenDeath
     player:
         0: active
         1: kills
@@ -133,6 +132,7 @@ variables {
         34: thirdPersonToggle
         35: scopedShotsStun
         36: directHit
+        37: sizeChase
 }
 rule ("Global Variables; Vectors and Radii, Visibilities, mode, gameStatus, initiatedStart, menuSize, cornerSpawning") {
     event {
@@ -722,6 +722,7 @@ rule ("1 v 1 Sudden Death") {
         Set Global Variable(suddenDeath, True);
         Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii));
         Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), First Of(Global.gameArrayVector), 200);
+        Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
     }
 }
 
@@ -790,6 +791,7 @@ rule ("Start Round and Ressurect") {
         Wait(0.01, Ignore Condition);
         Set Global Variable(oneVoneMode, False);
         Set Global Variable(circleSpawning, True);
+        Stop Scaling Player(All Players(All Teams));
         Resurrect(All Players(All Teams));
         Set Status(All Players(All Teams), Null, Rooted, 4);
         Set Status(All Players(All Teams), Null, Frozen, 4);
@@ -818,7 +820,8 @@ rule ("End Round Mode 0") {
         Set Ultimate Charge(All Players(All Teams), 0);
         Set Global Variable(winner, All Living Players(All Teams));
         Kill(Global.winner, Null);
-        Wait(0.05, Ignore Condition);
+        Stop Scaling Player(All Players(All Teams));
+        Wait(0.1, Ignore Condition);
         Resurrect(Global.winner);
         Wait(4, Ignore Condition);
         Set Global Variable(matchStatus, Global.nextMatchStatus);
@@ -847,7 +850,8 @@ rule ("End Round Mode 1") {
         Set Global Variable(winners, All Living Players(All Teams));
         Kill(First Of(Global.winners), Null);
         Kill(Value In Array(Global.winners, 1), Null);
-        Wait(0.05, Ignore Condition);
+        Stop Scaling Player(All Players(All Teams));
+        Wait(0.1, Ignore Condition);
         Resurrect(First Of(Global.winners));
         Resurrect(Value In Array(Global.winners, 1));
         Wait(4, Ignore Condition);
@@ -959,7 +963,7 @@ rule ("Events when player dies and active") {
     actions {
         Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), Position Of(Event Player), 6);
         Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), Position Of(Event Player), 100);
-        Create Effect(All Players(All Teams), Bad Aura, Color(Blue), Position Of(Event Player), 3, Visible To);
+        Create Effect(All Players(All Teams), Bad Aura, Color(Sky Blue), Position Of(Event Player), 3, Visible To);
         Set Player Variable(Event Player, deathEffect, Last Created Entity);
         Set Player Variable(Event Player, active, False);
         Wait(2, Ignore Condition);
@@ -1276,9 +1280,9 @@ rule ("Primary Fire: Enemy Push") {
         Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 14))));
         Set Status(Victim, Attacker, Rooted, 1);
         Apply Impulse(Victim, Vector(0, 0.25, 0), Multiply(5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1295,10 +1299,10 @@ rule ("Secondary Fire: Friendly Impulse") {
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1320,9 +1324,9 @@ rule ("Secondary Fire: Enemy Push") {
         End;
         Set Status(Victim, Attacker, Rooted, 1.5);
         Apply Impulse(Victim, Vector(0, 0.5, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(17.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(18.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(17.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(18.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1376,7 +1380,7 @@ rule ("Biotic Grenade: Friendly KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Apply Impulse(Healee, Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), Eye Position(Healee)), 15, To Player, Cancel Contrary Motion);
+        Apply Impulse(Healee, Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), Eye Position(Healee)), 12, To Player, Cancel Contrary Motion);
     }
 }
 
@@ -1408,9 +1412,9 @@ rule ("Biotic Grenade: Direct Hit KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, directHit, Players Within Radius((Event Player).anaNadeLandingPosition, 0.75, All Teams, Surfaces));
+        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), 0.5, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 22.5, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 26, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1441,12 +1445,15 @@ rule ("Ultimate Ability: Increased Knockback") {
         Is Using Ultimate(Event Player) == True;
     }
     actions {
-        Set Player Variable(Event Player, ultMultiplier, 1.75);
+        Set Player Variable(Event Player, ultMultiplier, 1.66);
         Wait(8, Ignore Condition);
         Set Player Variable(Event Player, ultMultiplier, 1);
         If(Global.suddenDeath);
-            Set Player Variable(Event Player, ultMultiplier, 10);
+            Set Player Variable(Event Player, ultMultiplier, 50);
+            Chase Player Variable Over Time(Event Player, sizeChase, 4, 15, Destination and Duration);
+            Start Scaling Player(Event Player, (Event Player).sizeChase, True);
             Wait Until(Not(Global.oneVoneMode), 99999);
+            Set Player Variable(Event Player, sizeChase, 0);
             Set Player Variable(Event Player, ultMultiplier, 1);
     }
 }
