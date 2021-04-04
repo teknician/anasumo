@@ -1208,10 +1208,10 @@ rule ("Primary Fire: Friendly Impulse") {
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 2.25, 0), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Wait(0.4, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Wait(0.4, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.35, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.35, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
@@ -1251,10 +1251,10 @@ rule ("Secondary Fire: Friendly Impulse") {
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Wait(0.4, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Wait(0.4, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.35, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.35, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
@@ -1718,21 +1718,6 @@ rule ("Create Team when 2 Players confirmed") {
         Set Global Variable(tempplayer, Null);
         Clear Status(Host Player, Phased Out);
         Destroy In-World Text(Global.inMenuText);
-    }
-}
-
-rule ("Test Bots") {
-    event {
-        Ongoing - Global;
-    }
-    conditions {
-        Is Game In Progress == True;
-    }
-    actions {
-        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
     }
 }
 
