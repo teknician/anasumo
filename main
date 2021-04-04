@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.0.2), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped."
+		Description: "Ana Sumo (v.0.3), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped."
 	}
 	lobby
 	{
@@ -1134,6 +1134,9 @@ rule ("Ammo allocation") {
                 Set Ammo(Event Player, 0, 0);
                 Set Primary Fire Enabled(Event Player, False);
                 Set Secondary Fire Enabled(Event Player, False);
+                If(Compare((Event Player).primaryAmmo, ==, 1));
+                    Set Primary Fire Enabled(Event Player, True);
+                End;
                 Wait(0.016, Ignore Condition);
             End;
         Else If(Compare((Event Player).primaryAmmo, ==, 1));
