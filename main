@@ -326,7 +326,7 @@ rule ("Player HUD Normal") {
         "commands"
         Create HUD Text(Event Player, Null, Null, Custom String("Corner Spawning toggle: Hold Q + F / ultimate + interact", Null, Null, Null), Right, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, Null, Custom String("Sphere Visibility toggle: Hold SPACE + F / Jump + Interact", Null, Null, Null), Right, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
-        Create HUD Text(Event Player, Null, Null, Custom String("Third Person toggle: Hold RELOAD + F / Reload + Interact", Null, Null, Null), Right, 10, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Third Person toggle: Hold RELOAD + F / Reload + Interact", Null, Null, Null), Right, 11, Null, Null, Color(White), Visible To and String, Default Visibility);
     }
 }
 
@@ -1176,11 +1176,9 @@ rule ("Ammo Allocation 3") {
         While(Is Firing Secondary(Event Player));
             Set Primary Fire Enabled(Event Player, True);
             Wait Until(Not(Is Firing Secondary(Event Player)), 99999);
-        End;
-        If(And(Compare((Event Player).primaryAmmo, ==, 0), Not(Is Firing Secondary(Event Player))));
             Set Primary Fire Enabled(Event Player, False);
+            Wait(0.016, Ignore Condition);
         End;
-        Wait(0.016, Ignore Condition);
     }
 }
 
@@ -1463,7 +1461,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by Crebos, Version 4.4", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.1.0", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
