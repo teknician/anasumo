@@ -716,12 +716,12 @@ rule ("1 v 1 Sudden Death") {
     }
     actions {
         Wait(90, Abort When False);
+        Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
+        Set Global Variable(suddenDeath, True);
         Set Ultimate Charge(All Living Players(All Teams), 100);
         Start Holding Button(All Living Players(All Teams), Button(Ultimate));
-        Set Global Variable(suddenDeath, True);
         Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii));
         Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), First Of(Global.gameArrayVector), 200);
-        Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
     }
 }
 
@@ -736,14 +736,15 @@ rule ("Ultimate Ability: Increased Knockback") {
     }
     actions {
         Set Player Variable(Event Player, ultMultiplier, 1.75);
-        Wait(8, Ignore Condition);
-        Set Player Variable(Event Player, ultMultiplier, 1);
         If(Global.suddenDeath);
             Set Player Variable(Event Player, ultMultiplier, 50);
             Start Scaling Player(Event Player, 2, True);
             Wait Until(Not(Global.oneVoneMode), 99999);
             Start Scaling Player(Event Player, 1, False);
             Set Player Variable(Event Player, ultMultiplier, 1);
+        End;
+        Wait(8, Ignore Condition);
+        Set Player Variable(Event Player, ultMultiplier, 1);
     }
 }
 
@@ -840,6 +841,7 @@ rule ("End Round Mode 0") {
         Big Message(All Players(All Teams), Custom String("{0} {1}", All Living Players(All Teams), String("Wins", Null, Null, Null), Null));
         Set Ultimate Charge(All Players(All Teams), 0);
         Set Global Variable(winner, All Living Players(All Teams));
+        Wait(1, Ignore Condition);
         Kill(Global.winner, Null);
         Stop Scaling Player(All Players(All Teams));
         Wait(1, Ignore Condition);
@@ -1105,6 +1107,18 @@ rule ("Ana Health Reset") {
     }
 }
 
+rule ("Ultimate Impulse") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    actions {
+        Wait Until(Is Using Ultimate(Event Player), 99999);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+    }
+}
+
 rule ("Biotic Grenade Trajectory") {
     event {
         Ongoing - Each Player;
@@ -1278,29 +1292,12 @@ rule ("Primary Fire: Friendly Impulse") {
     conditions {
         Is Firing Primary(Event Player) == True;
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
-        Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == False;
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-    }
-}
-
-rule ("Primary Fire: Friendly Up Push") {
-    event {
-        Ongoing - Each Player;
-        All;
-        All;
-    }
-    conditions {
-        Is Firing Primary(Event Player) == True;
-        Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
-        Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == True;
-    }
-    actions {
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1335,30 +1332,12 @@ rule ("Secondary Fire: Friendly Impulse") {
         Is Firing Secondary(Event Player) == True;
         Is Button Held(Event Player, Button(Primary Fire)) == True;
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
-        Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == False;
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-    }
-}
-
-rule ("Secondary Fire: Friendly Up Push") {
-    event {
-        Ongoing - Each Player;
-        All;
-        All;
-    }
-    conditions {
-        Is Firing Secondary(Event Player) == True;
-        Is Button Held(Event Player, Button(Primary Fire)) == True;
-        Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
-        Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == True;
-    }
-    actions {
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1828,3 +1807,5 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
+
+
