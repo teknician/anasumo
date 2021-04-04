@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.2), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.3), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -91,9 +91,8 @@ variables {
         23: circleSpawning
         24: cornerSpawning
         25: totalRounds
-        26: winner
-        27: winners
-        28: suddenDeath
+        26: winners
+        27: suddenDeath
     player:
         0: active
         1: kills
@@ -696,13 +695,16 @@ rule ("When 1 v 1 gets Enabled") {
         Set Player Variable(All Living Players(All Teams), scopedShotsStun, True);
         Create Effect(All Players(All Teams), Cloud, Color(White), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii), Visible To Position and Radius);
         Set Global Variable(oneVoneEffects, Last Created Entity);
-        Wait(45, Abort When False);
+        Wait(50, Abort When False);
         If(Global.oneVoneMode);
             Set Ultimate Charge(All Living Players(All Teams), 100);
         End;
-        Wait(45, Abort When False);
+        Wait(50, Abort When False);
         If(Global.oneVoneMode);
             Set Ultimate Charge(All Living Players(All Teams), 100);
+        End;
+        Wait(50, Abort When False);
+        Kill(All Living Players(All Teams), Null);
     }
 }
 
@@ -840,12 +842,7 @@ rule ("End Round Mode 0") {
         Modify Player Variable(All Living Players(All Teams), roundsWon, Add, 1);
         Big Message(All Players(All Teams), Custom String("{0} {1}", All Living Players(All Teams), String("Wins", Null, Null, Null), Null));
         Set Ultimate Charge(All Players(All Teams), 0);
-        Set Global Variable(winner, All Living Players(All Teams));
-        Wait(1, Ignore Condition);
-        Kill(Global.winner, Null);
         Stop Scaling Player(All Players(All Teams));
-        Wait(1, Ignore Condition);
-        Resurrect(Global.winner);
         Wait(4, Ignore Condition);
         Set Global Variable(matchStatus, Global.nextMatchStatus);
         Set Match Time(900);
@@ -1115,7 +1112,7 @@ rule ("Ultimate Impulse") {
     }
     actions {
         Wait Until(Is Using Ultimate(Event Player), 99999);
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1807,5 +1804,4 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
-
 
