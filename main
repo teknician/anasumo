@@ -1119,38 +1119,47 @@ rule ("Ammo allocation") {
         All;
     }
     actions {
-        If(Compare((Event Player).primaryAmmo, ==, 0));
-            While(Compare((Event Player).secondaryAmmo, ==, 1));
-                Set Secondary Fire Enabled(Event Player, True);
-                Set Ammo(Event Player, 0, 1);
-                If(Is Firing Secondary(Event Player));
-                    Set Primary Fire Enabled(Event Player, True);
-                Else;
-                    Set Primary Fire Enabled(Event Player, False);
-                End;
-                Wait(0.016, Ignore Condition);
-            End;
-            While(Compare((Event Player).secondaryAmmo, ==, 0));
-                Set Ammo(Event Player, 0, 0);
-                Set Primary Fire Enabled(Event Player, False);
-                Set Secondary Fire Enabled(Event Player, False);
-                If(Compare((Event Player).primaryAmmo, ==, 1));
-                    Set Primary Fire Enabled(Event Player, True);
-                End;
-                Wait(0.016, Ignore Condition);
-            End;
-        Else If(Compare((Event Player).primaryAmmo, ==, 1));
-            If(Compare((Event Player).secondaryAmmo, ==, 1));
-                Set Secondary Fire Enabled(Event Player, True);
-                Set Primary Fire Enabled(Event Player, True);
-                Set Ammo(Event Player, 0, 2);
-            Else If(Compare((Event Player).secondaryAmmo, ==, 0));
-                Set Secondary Fire Enabled(Event Player, False);
-                Set Primary Fire Enabled(Event Player, True);
-                Set Ammo(Event Player, 0, 1);
+        If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
+            Set Ammo(Event Player, 0, 0);
+            Set Primary Fire Enabled(Event Player, False);
+            Set Secondary Fire Enabled(Event Player, False);
+            Wait(0.016, Ignore Condition);
+            If(Compare((Event Player).primaryAmmo, ==, 1));
+                Skip(22);
+            Else If(Compare((Event Player).secondaryAmmo, ==, 1));
+                Skip(2);
             End;
         End;
-        Wait(0.032, Ignore Condition);
+        //lbl_0:
+        If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 1)));
+            Set Ammo(Event Player, 0, 1);
+            Set Secondary Fire Enabled(Event Player, True);
+            While(Is Firing Secondary(Event Player));
+                Set Primary Fire Enabled(Event Player, True);
+                Wait(0.016, Ignore Condition);
+            End;
+            While(Not(Is Firing Secondary(Event Player)));
+                If(Compare((Event Player).primaryAmmo, ==, 0));
+                    Set Primary Fire Enabled(Event Player, False);
+                Else If(Compare((Event Player).primaryAmmo, ==, 1));
+                    Set Ammo(Event Player, 0, 2);
+                    Set Primary Fire Enabled(Event Player, True);
+                    Set Secondary Fire Enabled(Event Player, True);
+                End;
+                Wait(0.016, Ignore Condition);
+            End;
+        End;
+        //lbl_1:
+        If(And(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 0)));
+            Set Ammo(Event Player, 0, 1);
+            Set Secondary Fire Enabled(Event Player, False);
+            Set Primary Fire Enabled(Event Player, True);
+            Wait(0.016, Ignore Condition);
+            If(Compare((Event Player).secondaryAmmo, ==, 1));
+                Set Secondary Fire Enabled(Event Player, True);
+            End;
+        End;
+        Wait(0.016, Ignore Condition);
         Loop;
     }
 }
@@ -1336,7 +1345,7 @@ rule ("Ultimate Ability: Increased Knockback") {
         Is Using Ultimate(Event Player) == True;
     }
     actions {
-        Set Player Variable(Event Player, ultMultiplier, 1.75);
+        Set Player Variable(Event Player, ultMultiplier, 2);
         Wait(8, Ignore Condition);
         Set Player Variable(Event Player, ultMultiplier, 1);
     }
