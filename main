@@ -1300,7 +1300,7 @@ rule ("Primary Fire: Friendly Up Push") {
         Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1332,7 +1332,6 @@ rule ("Secondary Fire: Friendly Impulse") {
         All;
     }
     conditions {
-        (Event Player).secondaryAmmo == 1;
         Is Firing Secondary(Event Player) == True;
         Is Button Held(Event Player, Button(Primary Fire)) == True;
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
@@ -1353,14 +1352,13 @@ rule ("Secondary Fire: Friendly Up Push") {
         All;
     }
     conditions {
-        (Event Player).secondaryAmmo == 1;
         Is Firing Secondary(Event Player) == True;
         Is Button Held(Event Player, Button(Primary Fire)) == True;
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
         Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
