@@ -126,6 +126,7 @@ variables {
         31: anaNadeLandingPosition
         32: affectedPlayers
         33: index
+        34: thirdPersonToggle
 }
 rule ("Global Variables; Vectors and Radii, Visibilities, mode, gameStatus, initiatedStart, menuSize, cornerSpawning") {
     event {
@@ -344,6 +345,29 @@ rule ("Player HUD for Host (statistics)") {
         Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("List of FreePlayers", Null, Null, Null), Global.freePlayers, Null), Null, Right, 23, Null, Color(White), Null, Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("CustomTeamMode", Null, Null, Null), Global.customTeamMode, Null), Null, Right, 24, Null, Color(White), Null, Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("tempplayer", Null, Null, Null), Global.tempplayer, Null), Null, Right, 25, Null, Color(White), Null, Visible To and String, Default Visibility);
+    }
+}
+
+rule ("Camera - 3rd Person Toggle") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Reload)) == True;
+        Is Button Held(Event Player, Button(Interact)) == True;
+    }
+    actions {
+        If(Compare((Event Player).thirdPersonToggle, ==, 0));
+            Wait(0.116, Ignore Condition);
+            Start Camera(Event Player, Ray Cast Hit Position(Event Player, Add(Add(Add(Event Player, World Vector Of(Vector(-0.15, 0.06, 0.5), Event Player, Rotation)), Multiply(Up, 1.5)), Multiply(Facing Direction Of(Event Player), -3)), Null, Event Player, False), Add(Event Player, Multiply(Facing Direction Of(Event Player), 1000)), Update Every Frame(40));
+            Set Player Variable(Event Player, thirdPersonToggle, 1);
+            Abort;
+        Else If(Compare((Event Player).thirdPersonToggle, ==, 1));
+            Wait(0.116, Ignore Condition);
+            Stop Camera(Event Player);
+            Set Player Variable(Event Player, thirdPersonToggle, 0);
     }
 }
 
@@ -1134,11 +1158,11 @@ rule ("Primary Fire: Friendly Impulse") {
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 2.5, 0), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1153,12 +1177,13 @@ rule ("Primary Fire: Enemy Push") {
         Victim != (Event Player).teammate;
     }
     actions {
+        Set Player Variable(Event Player, primaryFirePulse, Facing Direction Of(Event Player));
         Apply Impulse(Victim, Vector(0, 2, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1175,12 +1200,12 @@ rule ("Secondary Fire: Friendly Impulse") {
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 3.5, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.35, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.35, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1196,12 +1221,13 @@ rule ("Secondary Fire: Enemy Push") {
         Victim != (Event Player).teammate;
     }
     actions {
-        Apply Impulse(Victim, Vector(0, 2.5, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Set Player Variable(Event Player, secondaryFirePulse, Facing Direction Of(Event Player));
+        Apply Impulse(Victim, Vector(0, 2.5, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, Facing Direction Of(Event Player), Multiply(12, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1220,7 +1246,7 @@ rule ("Sleep Dart lands, pulls") {
         Wait(0.1, Ignore Condition);
         Clear Status(Victim, Asleep);
         Apply Impulse(Victim, Add(Direction Towards(Victim, Attacker), Vector(0, 0.9, 0)), 8, To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, Direction Towards(Victim, Attacker), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, Direction Towards(Victim, Attacker), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Victim, Add(Direction Towards(Victim, Attacker), Vector(0, 0.9, 0)), 8, To World, Cancel Contrary Motion);
         Set Status(Victim, Attacker, Stunned, 1.75);
     }
@@ -1238,8 +1264,8 @@ rule ("Sleep Dart: Propel Forward") {
     }
     actions {
         Wait(0.5, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 1, 0)), 7, To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 0.75, 0)), 7, To World, Cancel Contrary Motion);
     }
 }
 
@@ -1268,7 +1294,7 @@ rule ("Biotic Grenade: Enemy KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 4, All Teams, Surfaces));
+        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Add(Multiply(-1, Direction Towards(Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 16, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
