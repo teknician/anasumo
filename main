@@ -1130,14 +1130,21 @@ rule ("Ammo allocation") {
         Else If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 1)));
             Set Ammo(Event Player, 0, 1);
             Set Secondary Fire Enabled(Event Player, True);
-            Set Primary Fire Enabled(Event Player, False);
-            If(Is Firing Secondary(Event Player));
+            While(Is Firing Secondary(Event Player));
                 Set Primary Fire Enabled(Event Player, True);
+                If(And(Not(Is Firing Secondary(Event Player)), Compare((Event Player).primaryAmmo, ==, 0)));
+                    Set Primary Fire Enabled(Event Player, False);
+                End;
+                If(Compare((Event Player).secondaryAmmo, ==, 0));
+                    Set Secondary Fire Enabled(Event Player, False);
+                    Break;
+                End;
+                Wait(0.016, Ignore Condition);
             End;
         End;
         If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
             While(Or(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
-                Wait Until(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 1)), 2);
+                Wait Until(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 1)), 1.5);
                 Set Ammo(Event Player, 0, 1);
                 Wait(0.016, Ignore Condition);
             End;
@@ -1178,7 +1185,7 @@ rule ("Primary Fire: Enemy Push") {
         Victim != (Event Player).teammate;
     }
     actions {
-        Set Player Variable(Event Player, primaryFirePulse, Facing Direction Of(Event Player));
+        Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Add(Vertical Angle From Direction(Facing Direction Of(Event Player)), 10)));
         Apply Impulse(Victim, Vector(0, 2, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
@@ -1222,7 +1229,7 @@ rule ("Secondary Fire: Enemy Push") {
         Victim != (Event Player).teammate;
     }
     actions {
-        Set Player Variable(Event Player, secondaryFirePulse, Facing Direction Of(Event Player));
+        Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Add(Vertical Angle From Direction(Facing Direction Of(Event Player)), 10)));
         Apply Impulse(Victim, Vector(0, 2.5, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
@@ -1266,7 +1273,7 @@ rule ("Sleep Dart: Propel Forward") {
     actions {
         Wait(0.5, Ignore Condition);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 0.75, 0)), 7, To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 1, 0)), 8, To World, Cancel Contrary Motion);
     }
 }
 
@@ -1297,7 +1304,7 @@ rule ("Biotic Grenade: Enemy KB") {
     actions {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Add(Multiply(-1, Direction Towards(Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 16, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Add(Multiply(-1, Direction Towards(Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 12, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
         End;
     }
