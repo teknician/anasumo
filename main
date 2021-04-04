@@ -1074,10 +1074,10 @@ rule ("Ana Primary ammo HUD") {
         Destroy In-World Text((Event Player).primaryAmmoHud);
         Set Primary Fire Enabled(Event Player, False);
         Wait(0.016, Ignore Condition);
-        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(50, (Event Player).ultMultiplier), Destination and Rate);
+        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(33.33, (Event Player).ultMultiplier), Destination and Rate);
         Create In-World Text(Event Player, Custom String("Primary: 0, Reloading {0}%", (Event Player).primaryAmmoChase, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.3, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
         Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
-        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 2);
+        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 3);
         Wait(0.016, Ignore Condition);
         Destroy In-World Text((Event Player).primaryAmmoHud);
         Stop Chasing Player Variable(Event Player, primaryAmmoChase);
@@ -1106,10 +1106,10 @@ rule ("Ana Secondary ammo HUD") {
         Destroy In-World Text((Event Player).secondaryAmmoHud);
         Set Player Variable(Event Player, secondaryAmmo, 0);
         Wait(0.016, Ignore Condition);
-        Chase Player Variable At Rate(Event Player, secondaryAmmoChase, 100, Multiply(25, (Event Player).ultMultiplier), Destination and Rate);
+        Chase Player Variable At Rate(Event Player, secondaryAmmoChase, 100, Multiply(20, (Event Player).ultMultiplier), Destination and Rate);
         Create In-World Text(Event Player, Custom String("Scoped: 0, Reloading {0}%", (Event Player).secondaryAmmoChase, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.4, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
         Set Player Variable(Event Player, secondaryAmmoHud, Last Text ID);
-        Wait Until(Compare((Event Player).secondaryAmmoChase, ==, 100), 4);
+        Wait Until(Compare((Event Player).secondaryAmmoChase, ==, 100), 5);
         Wait(0, Ignore Condition);
         Destroy In-World Text((Event Player).secondaryAmmoHud);
         Stop Chasing Player Variable(Event Player, secondaryAmmoChase);
@@ -1307,6 +1307,7 @@ rule ("Sleep Dart: Propel Forward") {
     conditions {
         Is Button Held(Event Player, Button(Ability 1)) == True;
         Ability Cooldown(Event Player, Button(Ability 1)) == 0;
+        Is Using Ability 1(Event Player) == True;
     }
     actions {
         Wait(0.5, Ignore Condition);
