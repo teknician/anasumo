@@ -1175,7 +1175,9 @@ rule ("Ammo Allocation 3") {
         Set Secondary Fire Enabled(Event Player, True);
         While(Is Firing Secondary(Event Player));
             Set Primary Fire Enabled(Event Player, True);
-            Wait Until(Not(Is Firing Secondary(Event Player)), 99999);
+            Wait(0.016, Ignore Condition);
+        End;
+        While(And(Not(Is Firing Secondary(Event Player)), Compare((Event Player).primaryAmmo, ==, 0)));
             Set Primary Fire Enabled(Event Player, False);
             Wait(0.016, Ignore Condition);
         End;
