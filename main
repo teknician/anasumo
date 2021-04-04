@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.1), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.2), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -1230,23 +1230,6 @@ rule ("Ammo Allocation 3") {
         All;
     }
     conditions {
-        (Event Player).secondaryAmmo == 1;
-        (Event Player).primaryAmmo == 1;
-    }
-    actions {
-        Set Primary Fire Enabled(Event Player, True);
-        Set Secondary Fire Enabled(Event Player, True);
-        Set Ammo(Event Player, 0, 2);
-    }
-}
-
-rule ("Ammo Allocation 3") {
-    event {
-        Ongoing - Each Player;
-        All;
-        All;
-    }
-    conditions {
         (Event Player).primaryAmmo == 0;
         (Event Player).secondaryAmmo == 1;
     }
@@ -1266,6 +1249,23 @@ rule ("Ammo Allocation 3") {
             End;
             Wait(0.016, Ignore Condition);
         End;
+    }
+}
+
+rule ("Ammo Allocation 4") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).secondaryAmmo == 1;
+        (Event Player).primaryAmmo == 1;
+    }
+    actions {
+        Set Primary Fire Enabled(Event Player, True);
+        Set Secondary Fire Enabled(Event Player, True);
+        Set Ammo(Event Player, 0, 2);
     }
 }
 
@@ -1295,12 +1295,13 @@ rule ("Primary Fire: Friendly Up Push") {
         All;
     }
     conditions {
+        (Event Player).primaryAmmo == 1;
         Is Button Held(Event Player, Button(Primary Fire)) == True;
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
         Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1332,6 +1333,7 @@ rule ("Secondary Fire: Friendly Impulse") {
         All;
     }
     conditions {
+        (Event Player).secondaryAmmo == 1;
         Is Firing Secondary(Event Player) == True;
         Is Button Held(Event Player, Button(Primary Fire)) == True;
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
@@ -1358,7 +1360,7 @@ rule ("Secondary Fire: Friendly Up Push") {
         Or(Is Button Held(Event Player, Button(Jump)), Is Jumping(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 3, 0), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1468,7 +1470,7 @@ rule ("Biotic Grenade: Direct Hit KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), 0.5, All Teams, Surfaces));
+        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.5, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 26, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
@@ -1826,21 +1828,6 @@ rule ("Create Team when 2 Players confirmed") {
         Set Global Variable(tempplayer, Null);
         Clear Status(Host Player, Phased Out);
         Destroy In-World Text(Global.inMenuText);
-    }
-}
-
-rule ("Test Bots") {
-    event {
-        Ongoing - Global;
-    }
-    conditions {
-        Is Game In Progress == True;
-    }
-    actions {
-        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
     }
 }
 
