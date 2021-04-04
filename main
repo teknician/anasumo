@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.1.0), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped."
+		Description: "Ana Sumo (v.1.1), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -51,7 +51,7 @@ settings
 				Damage Dealt: 10%
 				Damage Received: 10%
 				Sleep Dart Cooldown Time: 70%
-				Biotic Grenade Cooldown Time: 60%
+				Biotic Grenade Cooldown Time: 70%
 				Ultimate Generation - Combat Nano Boost: 0%
 				Ultimate Generation - Passive Nano Boost: 0%
 				Ultimate Generation Nano Boost: 10%
@@ -323,6 +323,12 @@ rule ("Player HUD Normal") {
         Create HUD Text(Event Player, String("{0}: {1}", Custom String("{0} {1}", String("Rounds", Null, Null, Null), String("Played", Null, Null, Null), Null), (Event Player).roundsPlayed, Null), Null, Null, Left, 5, Color(Orange), Null, Null, Visible To and String, Default Visibility);
         Create HUD Text(Event Player, String("{0}: {1}", String("Eliminations", Null, Null, Null), (Event Player).kills, Null), Null, Null, Left, 6, Color(Red), Null, Null, Visible To and String, Default Visibility);
         Create HUD Text(Event Player, String("{0}: {1}", Custom String("Corner Request", Null, Null, Null), (Event Player).cornerSpawnRequest, Null), Null, Null, Left, 7, Color(Orange), Null, Null, Visible To and String, Default Visibility);
+        "instructions"
+        Create HUD Text(Event Player, Null, Null, Custom String("Unscoped: Push. Crouch to push self", Null, Null, Null), Left, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Scoped: Powerful push. Crouch to push self", Null, Null, Null), Left, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Nade: Area KB", Null, Null, Null), Left, 10, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Sleep: Pull and stun", Null, Null, Null), Left, 11, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Ult: Double KB", Null, Null, Null), Left, 12, Null, Null, Color(White), Visible To and String, Default Visibility);
         "commands"
         Create HUD Text(Event Player, Null, Null, Custom String("Corner Spawning toggle: Hold Q + F / ultimate + interact", Null, Null, Null), Right, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, Null, Custom String("Sphere Visibility toggle: Hold SPACE + F / Jump + Interact", Null, Null, Null), Right, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
@@ -1201,12 +1207,12 @@ rule ("Primary Fire: Friendly Impulse") {
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
     }
     actions {
-        Apply Impulse(Event Player, Vector(0, 2.25, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 2.25, 0), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.4, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.4, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
     }
 }
 
@@ -1222,12 +1228,12 @@ rule ("Primary Fire: Enemy Push") {
     }
     actions {
         Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 10))));
-        Apply Impulse(Victim, Vector(0, 1.75, 0), Multiply(7, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(7, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, Vector(0, 2, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(7, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(7, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1266,12 +1272,12 @@ rule ("Secondary Fire: Enemy Push") {
     }
     actions {
         Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 10))));
-        Apply Impulse(Victim, Vector(0, 2.5, 0), Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, Vector(0, 2.5, 0), Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1324,7 +1330,7 @@ rule ("Biotic Grenade: Friendly KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Apply Impulse(Healee, Add(Multiply(-1, Direction Towards(Position Of(Healee), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 12, To Player, Cancel Contrary Motion);
+        Apply Impulse(Healee, Add(Multiply(-1, Direction Towards(Position Of(Healee), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 14, To Player, Cancel Contrary Motion);
     }
 }
 
@@ -1340,7 +1346,7 @@ rule ("Biotic Grenade: Enemy KB") {
     actions {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Add(Multiply(-1, Direction Towards(Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 10, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Add(Multiply(-1, Direction Towards(Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), (Event Player).anaNadeLandingPosition)), Vector(0, 1, 0)), 12, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
         End;
     }
