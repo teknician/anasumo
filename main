@@ -1001,6 +1001,7 @@ rule ("Ana Grenade Constants") {
         Hero Of(Event Player) == Hero(Ana);
     }
     actions {
+        Set Ammo(Event Player, 0, 2);
         Set Max Ammo(Event Player, 0, 2);
         Set Player Variable(Event Player, ultMultiplier, 1);
         Set Reload Enabled(Event Player, False);
@@ -1175,11 +1176,10 @@ rule ("Ammo Allocation 3") {
         Set Secondary Fire Enabled(Event Player, True);
         While(Is Firing Secondary(Event Player));
             Set Primary Fire Enabled(Event Player, True);
-            Wait(0.016, Ignore Condition);
-        End;
-        While(And(Not(Is Firing Secondary(Event Player)), Compare((Event Player).primaryAmmo, ==, 0)));
-            Set Primary Fire Enabled(Event Player, False);
-            Wait(0.016, Ignore Condition);
+            If(And(Not(Is Firing Secondary(Event Player)), Compare((Event Player).primaryAmmo, ==, 0)));
+                Set Primary Fire Enabled(Event Player, False);
+            End;
+            Wait(0.032, Ignore Condition);
         End;
     }
 }
