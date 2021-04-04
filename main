@@ -1119,37 +1119,35 @@ rule ("Ammo allocation") {
         All;
     }
     actions {
-        If(And(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 1)));
-            Set Ammo(Event Player, 0, 2);
-            Set Primary Fire Enabled(Event Player, True);
-            Set Secondary Fire Enabled(Event Player, True);
-        Else If(And(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 0)));
-            Set Ammo(Event Player, 0, 1);
-            Set Primary Fire Enabled(Event Player, True);
-            Set Secondary Fire Enabled(Event Player, False);
-        Else If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 1)));
-            Set Ammo(Event Player, 0, 1);
-            Set Secondary Fire Enabled(Event Player, True);
-            While(Is Firing Secondary(Event Player));
-                Set Primary Fire Enabled(Event Player, True);
-                If(And(Not(Is Firing Secondary(Event Player)), Compare((Event Player).primaryAmmo, ==, 0)));
+        If(Compare((Event Player).primaryAmmo, ==, 0));
+            While(Compare((Event Player).secondaryAmmo, ==, 1));
+                Set Secondary Fire Enabled(Event Player, True);
+                Set Ammo(Event Player, 0, 1);
+                If(Is Firing Secondary(Event Player));
+                    Set Primary Fire Enabled(Event Player, True);
+                Else;
                     Set Primary Fire Enabled(Event Player, False);
                 End;
-                If(Compare((Event Player).secondaryAmmo, ==, 0));
-                    Set Secondary Fire Enabled(Event Player, False);
-                    Break;
-                End;
                 Wait(0.016, Ignore Condition);
             End;
-        End;
-        If(And(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
-            While(Or(Compare((Event Player).primaryAmmo, ==, 0), Compare((Event Player).secondaryAmmo, ==, 0)));
-                Wait Until(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).secondaryAmmo, ==, 1)), 1.5);
+            While(Compare((Event Player).secondaryAmmo, ==, 0));
+                Set Ammo(Event Player, 0, 0);
+                Set Primary Fire Enabled(Event Player, False);
+                Set Secondary Fire Enabled(Event Player, False);
+                Wait(0.016, Ignore Condition);
+            End;
+        Else If(Compare((Event Player).primaryAmmo, ==, 1));
+            If(Compare((Event Player).secondaryAmmo, ==, 1));
+                Set Secondary Fire Enabled(Event Player, True);
+                Set Primary Fire Enabled(Event Player, True);
+                Set Ammo(Event Player, 0, 2);
+            Else If(Compare((Event Player).secondaryAmmo, ==, 0));
+                Set Secondary Fire Enabled(Event Player, False);
+                Set Primary Fire Enabled(Event Player, True);
                 Set Ammo(Event Player, 0, 1);
-                Wait(0.016, Ignore Condition);
             End;
         End;
-        Wait(0.016, Ignore Condition);
+        Wait(0.032, Ignore Condition);
         Loop;
     }
 }
@@ -1185,7 +1183,7 @@ rule ("Primary Fire: Enemy Push") {
         Victim != (Event Player).teammate;
     }
     actions {
-        Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Add(Vertical Angle From Direction(Facing Direction Of(Event Player)), 10)));
+        Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 10))));
         Apply Impulse(Victim, Vector(0, 2, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
@@ -1229,13 +1227,13 @@ rule ("Secondary Fire: Enemy Push") {
         Victim != (Event Player).teammate;
     }
     actions {
-        Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Add(Vertical Angle From Direction(Facing Direction Of(Event Player)), 10)));
-        Apply Impulse(Victim, Vector(0, 2.5, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 10))));
+        Apply Impulse(Victim, Vector(0, 3, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(8, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(9, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
