@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.3), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.4), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -1104,18 +1104,6 @@ rule ("Ana Health Reset") {
     }
 }
 
-rule ("Ultimate Impulse") {
-    event {
-        Ongoing - Each Player;
-        All;
-        All;
-    }
-    actions {
-        Wait Until(Is Using Ultimate(Event Player), 99999);
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(6.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-    }
-}
-
 rule ("Biotic Grenade Trajectory") {
     event {
         Ongoing - Each Player;
@@ -1266,11 +1254,11 @@ rule ("Ammo Allocation 4") {
         Set Secondary Fire Enabled(Event Player, True);
         While(Compare((Event Player).primaryAmmo, ==, 0));
             While(Is Firing Secondary(Event Player));
-                Set Primary Fire Enabled(Event Player, True);
-                Wait(0.016, Ignore Condition);
                 If(Compare((Event Player).primaryAmmo, ==, 1));
                     Break;
                 End;
+                Set Primary Fire Enabled(Event Player, True);
+                Wait(0.016, Ignore Condition);
             End;
             If(Not(Is Firing Secondary(Event Player)));
                 Set Primary Fire Enabled(Event Player, False);
@@ -1430,7 +1418,7 @@ rule ("Biotic Grenade: Enemy KB") {
     actions {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 7, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1446,9 +1434,9 @@ rule ("Biotic Grenade: Direct Hit KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.5, All Teams, Surfaces));
+        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.75, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 26, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 25, To World, Cancel Contrary Motion);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1561,7 +1549,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.0", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.4", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
@@ -1806,3 +1794,5 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
+
+
