@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.4), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.6), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -621,7 +621,6 @@ rule ("1 vs 1 mode on Normal Mode") {
         Wait(0.1, Abort When False);
         Set Global Variable(oneVoneMode, True);
         Set Ability 1 Enabled(All Living Players(All Teams), True);
-        Set Ultimate Charge(All Living Players(All Teams), 100);
         Big Message(All Players(All Teams), String("{0} vs {1}", First Of(All Living Players(All Teams)), Value In Array(All Living Players(All Teams), 1), Null));
         If(And(Compare((First Of(All Living Players(All Teams))).cornerSpawnRequest, ==, True), Compare((Value In Array(All Living Players(All Teams), 1)).cornerSpawnRequest, ==, True)));
             Set Global Variable(cornerSpawning, True);
@@ -633,6 +632,9 @@ rule ("1 vs 1 mode on Normal Mode") {
             Teleport(Value In Array(All Living Players(All Teams), 1), Value In Array(Global.gameArrayVector, 3));
             Set Status(All Living Players(All Teams), Null, Frozen, 1);
             Set Global Variable(cornerSpawning, False);
+        End;
+        Wait(25, Ignore Condition);
+        Set Ultimate Charge(All Living Players(All Teams), 100);
     }
 }
 
@@ -695,7 +697,7 @@ rule ("When 1 v 1 gets Enabled") {
         Set Player Variable(All Living Players(All Teams), scopedShotsStun, True);
         Create Effect(All Players(All Teams), Cloud, Color(White), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii), Visible To Position and Radius);
         Set Global Variable(oneVoneEffects, Last Created Entity);
-        Wait(50, Abort When False);
+        Wait(75, Abort When False);
         If(Global.oneVoneMode);
             Set Ultimate Charge(All Living Players(All Teams), 100);
         End;
@@ -747,6 +749,38 @@ rule ("Ultimate Ability: Increased Knockback") {
         End;
         Wait(8, Ignore Condition);
         Set Player Variable(Event Player, ultMultiplier, 1);
+    }
+}
+
+rule ("Ultimate Ability: Cleanse on trigger") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Ultimate)) == True;
+        Ultimate Charge Percent(Event Player) == 100;
+    }
+    actions {
+        Clear Status(Event Player, Stunned);
+        Clear Status(Event Player, Rooted);
+    }
+}
+
+rule ("Ultimate Ability: Impulse on trigger") {
+    event {
+        Player Took Damage;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Victim, Button(Ultimate)) == True;
+        Ultimate Charge Percent(Victim) == 100;
+        Is In Air(Victim) == True;
+    }
+    actions {
+        Apply Impulse(Event Player, Add(Attacker, Vector(0, 0.5, 0)), 8, To World, Cancel Contrary Motion);
     }
 }
 
@@ -1279,6 +1313,7 @@ rule ("Primary Fire: Friendly Impulse") {
         Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
     }
     actions {
+        Wait Until(Compare((Event Player).secondaryAmmo, ==, 0), 99999);
         Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
@@ -1402,7 +1437,7 @@ rule ("Biotic Grenade: Friendly KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Apply Impulse(Healee, Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), Eye Position(Healee)), Multiply(16, (Event Player).ultMultiplier), To Player, Cancel Contrary Motion);
+        Apply Impulse(Healee, Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), Eye Position(Healee)), Multiply(15, (Event Player).ultMultiplier), To Player, Cancel Contrary Motion);
     }
 }
 
@@ -1418,7 +1453,8 @@ rule ("Biotic Grenade: Enemy KB") {
     actions {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 7, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 16, To World, Cancel Contrary Motion);
+            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
+            Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 1);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1434,9 +1470,10 @@ rule ("Biotic Grenade: Direct Hit KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.65, All Teams, Surfaces));
+        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.75, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Multiply(Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), (Event Player).ultMultiplier), 30, To World, Cancel Contrary Motion);
+            Play Effect(All Players(All Teams), Bad Explosion, Color(Yellow), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 2);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1549,7 +1586,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.4", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.6", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
@@ -1794,3 +1831,19 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
+
+rule ("Test Bots") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Game In Progress == True;
+    }
+    actions {
+        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
+    }
+}
+
