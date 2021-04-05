@@ -1441,11 +1441,11 @@ rule ("Biotic Grenade: Enemy KB") {
         Event Ability == Button(Ability 2);
     }
     actions {
-        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 7, All Teams, Surfaces));
+        Play Effect(All Players(All Teams), Good Explosion, Color(Blue), (Event Player).anaNadeLandingPosition, 1.5);
+        Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), (Event Player).anaNadeLandingPosition, 3);
+        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
-            Play Effect(All Players(All Teams), Good Explosion, Color(Blue), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 1.5);
-            Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 3);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1803,19 +1803,3 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
-
-rule ("Test Bots") {
-    event {
-        Ongoing - Global;
-    }
-    conditions {
-        Is Game In Progress == True;
-    }
-    actions {
-        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ana), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-        Create Dummy Bot(Hero(Ashe), All Teams, Add(Number Of Players(All Teams), 1), Vector(0, 0, 0), Vector(0, 0, 0));
-    }
-}
-
