@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.8), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.9), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -725,7 +725,7 @@ rule ("Ultimate Ability: Increased Knockback") {
         Is Using Ultimate(Event Player) == True;
     }
     actions {
-        Set Player Variable(Event Player, ultMultiplier, 1.75);
+        Set Player Variable(Event Player, ultMultiplier, 1.33);
         If(Global.suddenDeath);
             Set Player Variable(Event Player, ultMultiplier, 50);
             Start Scaling Player(Event Player, 2, True);
@@ -749,9 +749,9 @@ rule ("Ultimate Ability: Impulse on trigger") {
         Or(Has Status(Event Player, Stunned), Has Status(Victim, Rooted)) == True;
     }
     actions {
-        Wait(0.4, Ignore Condition);
+        Wait(0.25, Ignore Condition);
         Wait Until(And(And(Is Button Held(Victim, Button(Ultimate)), Compare(Ultimate Charge Percent(Victim), ==, 100)), Is In Air(Victim)), 99999);
-        Apply Impulse(Event Player, Add(Attacker, Vector(0, 0.5, 0)), 10, To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(Attacker, Vector(0, 0.5, 0)), 12, To World, Cancel Contrary Motion);
         Wait(0.1, Ignore Condition);
         Clear Status(Victim, Stunned);
         Clear Status(Victim, Rooted);
@@ -1347,6 +1347,7 @@ rule ("Secondary Fire: Enemy Push") {
         Is Firing Secondary(Event Player) == True;
         Is Button Held(Event Player, Button(Primary Fire)) == True;
         Victim != (Event Player).teammate;
+        Is Meleeing(Event Player) == False;
     }
     actions {
         Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 14))));
@@ -1542,7 +1543,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.8", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.9", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
@@ -1787,3 +1788,4 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
+
