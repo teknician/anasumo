@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.7), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.8), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -697,35 +697,21 @@ rule ("When 1 v 1 gets Enabled") {
         Set Player Variable(All Living Players(All Teams), scopedShotsStun, True);
         Create Effect(All Players(All Teams), Cloud, Color(White), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii), Visible To Position and Radius);
         Set Global Variable(oneVoneEffects, Last Created Entity);
-        Wait(65, Abort When False);
+        Wait(15, Abort When False);
         If(Global.oneVoneMode);
             Set Ultimate Charge(All Living Players(All Teams), 100);
         End;
-        Wait(50, Abort When False);
+        Wait(60, Abort When False);
         If(Global.oneVoneMode);
+            Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
+            Set Global Variable(suddenDeath, True);
             Set Ultimate Charge(All Living Players(All Teams), 100);
+            Start Holding Button(All Living Players(All Teams), Button(Ultimate));
+            Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii));
+            Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), First Of(Global.gameArrayVector), 200);
         End;
-        Wait(50, Abort When False);
+        Wait(30, Abort When False);
         Kill(All Living Players(All Teams), Null);
-    }
-}
-
-rule ("1 v 1 Sudden Death") {
-    event {
-        Ongoing - Global;
-    }
-    conditions {
-        Is Game In Progress == True;
-        Global.oneVoneMode == True;
-    }
-    actions {
-        Wait(90, Abort When False);
-        Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
-        Set Global Variable(suddenDeath, True);
-        Set Ultimate Charge(All Living Players(All Teams), 100);
-        Start Holding Button(All Living Players(All Teams), Button(Ultimate));
-        Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii));
-        Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), First Of(Global.gameArrayVector), 200);
     }
 }
 
@@ -1458,26 +1444,8 @@ rule ("Biotic Grenade: Enemy KB") {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 7, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
-            Play Effect(All Players(All Teams), Good Explosion, Color(Blue), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 3);
-            Wait(0.016, Ignore Condition);
-        End;
-    }
-}
-
-rule ("Biotic Grenade: Direct Hit KB") {
-    event {
-        Player Dealt Damage;
-        All;
-        All;
-    }
-    conditions {
-        Event Ability == Button(Ability 2);
-    }
-    actions {
-        Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.75, All Teams, Surfaces));
-        For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Multiply(20, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-            Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 5);
+            Play Effect(All Players(All Teams), Good Explosion, Color(Blue), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 1.5);
+            Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 3);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1590,7 +1558,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.7", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.8", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
