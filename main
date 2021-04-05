@@ -1458,7 +1458,7 @@ rule ("Biotic Grenade: Enemy KB") {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 7, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 15, To World, Cancel Contrary Motion);
-            Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 1);
+            Play Effect(All Players(All Teams), Good Explosion, Color(Blue), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 3);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1476,8 +1476,8 @@ rule ("Biotic Grenade: Direct Hit KB") {
     actions {
         Set Player Variable(Event Player, directHit, Players Within Radius(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.5, 0)), 0.75, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
-            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Multiply(Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), (Event Player).ultMultiplier), 30, To World, Cancel Contrary Motion);
-            Play Effect(All Players(All Teams), Bad Explosion, Color(Yellow), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 2);
+            Apply Impulse(Value In Array((Event Player).directHit, (Event Player).index), Direction Towards((Event Player).anaNadeLandingPosition, Vector(0, 1, 0)), Multiply(20, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+            Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), Position Of(Value In Array((Event Player).affectedPlayers, (Event Player).index)), 5);
             Wait(0.016, Ignore Condition);
         End;
     }
