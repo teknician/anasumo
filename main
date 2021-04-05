@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.2.6), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.2.7), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -1590,7 +1590,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.6", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.2.7", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
