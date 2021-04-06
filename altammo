@@ -1,0 +1,1813 @@
+settings
+{
+	main
+	{
+		Description: "Ana Sumo (v.3.0), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+	}
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Map Rotation: Paused
+		Match Voice Chat: Enabled
+		Max FFA Players: 8
+		Max Spectators: 6
+		Return To Lobby: Never
+		Swap Teams After Match: No
+	}
+	modes
+	{
+		Deathmatch
+		{
+			enabled maps
+			{
+				King's Row
+			}
+			Game Length In Minutes: 15
+			Score To Win: 25
+			Self Initiated Respawn: Off
+		}
+		disabled Team Deathmatch
+		{
+			Score To Win: 3
+			Self Initiated Respawn: Off
+		}
+		General
+		{
+			Allow Hero Switching: Off
+			Enemy Health Bars: Off
+			Game Mode Start: Immediately
+			Hero Limit: Off
+			Respawn As Random Hero: On
+			Spawn Health Packs: Disabled
+		}
+	}
+	heroes
+	{
+		General
+		{
+			Ana
+			{
+				Movement Speed: 100%
+				Damage Dealt: 10%
+				Damage Received: 10%
+				Sleep Dart Cooldown Time: 55%
+				Biotic Grenade Cooldown Time: 75%
+				Ultimate Generation - Combat Nano Boost: 0%
+				Ultimate Generation - Passive Nano Boost: 0%
+				Ultimate Generation Nano Boost: 10%
+			}
+			enabled heroes
+			{
+				Ana
+			}
+		}
+	}
+}
+variables {
+    global:
+        0: searchForMate
+        1: gameArrayOfRadii
+        2: matchStatus
+        3: nextMatchStatus
+        4: initiatedStart
+        5: oneVoneMode
+        6: oneVoneEffects
+        7: mode
+        8: dynamicTeams
+        9: freePlayers
+        10: retryDynamic
+        11: scoreType
+        12: inMenuText
+        13: sphereVisibleTo
+        14: customTeamMode
+        15: tempplayer
+        16: customTeam
+        17: iterator
+        18: gameArrayVector
+        19: menuArrayVector
+        20: menuSize
+        21: menuVisibility
+        22: mapHeight
+        23: circleSpawning
+        24: cornerSpawning
+        25: totalRounds
+        26: winners
+        27: suddenDeath
+    player:
+        0: active
+        1: kills
+        2: deathEffect
+        3: roundsWon
+        4: roundsPlayed
+        5: score
+        6: killer
+        7: teammate
+        8: mateHUD
+        9: cornerSpawnRequest
+        10: ultMultiplier
+        11: primaryAmmo
+        12: secondaryAmmo
+        13: primaryAmmoHud
+        14: secondaryAmmoHud
+        15: primaryAmmoChase
+        16: secondaryAmmoChase
+        17: primaryFirePulse
+        18: secondaryFirePulse
+        19: anaNade1
+        20: anaNade2
+        21: anaNadeGravity
+        22: anaNade4
+        23: anaNade5
+        24: anaNade6
+        25: anaNade7
+        26: anaNade8
+        27: anaNade9
+        28: anaNade10
+        29: anaNade11
+        30: anaNadeLandingVector
+        31: anaNadeLandingPosition
+        32: affectedPlayers
+        33: index
+        34: thirdPersonToggle
+        35: scopedShotsStun
+        36: directHit
+        37: distanceFromCenter
+        38: moveDampener
+}
+rule ("Global Variables; Vectors and Radii, Visibilities, mode, gameStatus, initiatedStart, menuSize, cornerSpawning") {
+    event {
+        Ongoing - Global;
+    }
+    actions {
+        Set Global Variable(gameArrayVector, Empty Array);
+        Set Global Variable(menuArrayVector, Empty Array);
+        Set Global Variable(gameArrayOfRadii, Empty Array);
+        Set Global Variable(sphereVisibleTo, Empty Array);
+        Set Global Variable(menuVisibility, Empty Array);
+        Set Global Variable(mode, 0);
+        Set Global Variable(cornerSpawning, False);
+        "Set current round to lobby"
+        Set Global Variable(matchStatus, 0);
+        "Set next round to restart"
+        Set Global Variable(nextMatchStatus, 2);
+        Set Global Variable(initiatedStart, False);
+        Set Global Variable(menuSize, 1);
+        Set Global Variable(circleSpawning, False);
+        Set Global Variable(totalRounds, 0);
+    }
+}
+
+rule ("PlayerVariables; active, Kills, DeathEffect, RoundsWon, PlayedRounds, Score, Killer") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.mode == 0;
+    }
+    actions {
+        Set Player Variable(Event Player, active, False);
+        Set Player Variable(Event Player, kills, 0);
+        Set Player Variable(Event Player, deathEffect, Null);
+        Set Player Variable(Event Player, roundsWon, 0);
+        Set Player Variable(Event Player, roundsPlayed, 0);
+        Set Player Variable(Event Player, score, 0);
+        Set Player Variable(Event Player, killer, Null);
+        Set Player Variable(Event Player, cornerSpawnRequest, False);
+    }
+}
+
+rule ("Values for Map King's Row") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Or(Compare(Current Map, ==, Map(King's Row)), Compare(Current Map, ==, Map(King's Row Winter))) == True;
+    }
+    actions {
+        "Platform Center"
+        Modify Global Variable(gameArrayVector, Append To Array, Vector(-20.749, 40.686, -74.843));
+        Modify Global Variable(gameArrayVector, Append To Array, Vector(-16.727, 32, -52.146));
+        "corner Spawn 1"
+        Modify Global Variable(gameArrayVector, Append To Array, Vector(-32.809, 40.69, -63.22));
+        "corner spawn 2"
+        Modify Global Variable(gameArrayVector, Append To Array, Vector(-11.422, 40.688, -83.778));
+        "Main Sphere Size"
+        Modify Global Variable(gameArrayOfRadii, Append To Array, 32);
+        "Tower Sphere Size"
+        Modify Global Variable(gameArrayOfRadii, Append To Array, 7);
+        "Menuitem Start Normal Game"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-16.971, 40.688, -80.575));
+        "Menuitem Start Team Game"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-24.481, 40.687, -79.985));
+        "Menuitem assign Teams"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-27.05, 40.688, -76.896));
+        "Menuitem Score decrease"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-19.441, 40.688, -70.184));
+        "Menuitem Score Increase"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-16.938, 40.688, -73.203));
+        "Menuitem Score infinity"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-23.352, 40.688, -71.19));
+        Set Global Variable(mapHeight, 37.6);
+    }
+}
+
+rule ("Values for Map Workshop Island") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Current Map == Map(Workshop Island);
+    }
+    actions {
+        "Platform Center"
+        Modify Global Variable(gameArrayVector, Append To Array, Vector(0, 0, 0));
+        "Main Sphere Size"
+        Modify Global Variable(gameArrayOfRadii, Append To Array, 29);
+        "Menuitem Start Normal Game"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(4.907, 1.499, 7.646));
+        "Menuitem Start Team Game"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(0.246, 1.499, 7.646));
+        "Menuitem assign Teams"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(-6.718, 1.499, 4.365));
+        "Menuitem Score decrease"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(7.057, 1.499, -4.097));
+        "Menuitem Score Increase"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(4.385, 1.499, -8.197));
+        "Menuitem Score infinity"
+        Modify Global Variable(menuArrayVector, Append To Array, Vector(8.436, 1.498, -0.129));
+        Set Global Variable(mapHeight, -0.5);
+    }
+}
+
+rule ("Disable Announcer, Music, Completion, Scoring, Match Time") {
+    event {
+        Ongoing - Global;
+    }
+    actions {
+        Disable Built-In Game Mode Announcer;
+        Disable Built-In Game Mode Music;
+        Disable Built-In Game Mode Completion;
+        Disable Built-In Game Mode Scoring;
+        Set Match Time(0);
+    }
+}
+
+rule ("Reset Timer when under one minute") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Game In Progress == True;
+        Match Time <= 60;
+    }
+    actions {
+        Set Match Time(900);
+    }
+}
+
+rule ("Sphere Visuals") {
+    event {
+        Ongoing - Global;
+    }
+    actions {
+        "createEffect(sphereVisibleTo, Effect.SPHERE, Color.SKY_BLUE, gameArrayVector[1], gameArrayOfRadii[1], EffectReeval.VISIBILITY_POSITION_AND_RADIUS)"
+        Create Effect(Global.sphereVisibleTo, Sphere, Color(White), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii), Visible To Position and Radius);
+        Create Effect(Global.sphereVisibleTo, Sphere, Color(White), Value In Array(Global.gameArrayVector, 1), Value In Array(Global.gameArrayOfRadii, 1), Visible To Position and Radius);
+    }
+}
+
+rule ("Add Player SphereVisibility (Jump + Interact)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Interact)) == True;
+        Is Button Held(Event Player, Button(Jump)) == True;
+        Array Contains(Global.sphereVisibleTo, Event Player) == False;
+    }
+    actions {
+        Wait(1, Abort When False);
+        Modify Global Variable(sphereVisibleTo, Append To Array, Event Player);
+        Small Message(Event Player, Custom String("Sphere visibility enabled!", Null, Null, Null));
+    }
+}
+
+rule ("Remove Player Sphere Visility (Jump + Interact)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Interact)) == True;
+        Is Button Held(Event Player, Button(Jump)) == True;
+        Array Contains(Global.sphereVisibleTo, Event Player) == True;
+    }
+    actions {
+        Wait(1, Abort When False);
+        Modify Global Variable(sphereVisibleTo, Remove From Array By Value, Event Player);
+        Small Message(Event Player, Custom String("Sphere visibility disabled!", Null, Null, Null));
+    }
+}
+
+rule ("Player HUD Normal") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    actions {
+        "statistics"
+        Create HUD Text(Event Player, String("{0}: {1}", String("Remaining", Null, Null, Null), Number Of Living Players(All Teams), Null), Null, Null, Left, 1, Color(White), Null, Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, String("{0}: {1}", Custom String("Score to win", Null, Null, Null), Global.scoreType, Null), Null, Null, Left, 2, Color(Aqua), Null, Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, String("{0}: {1}", String("Score", Null, Null, Null), Score Of(Event Player), Null), Null, Null, Left, 3, Color(Blue), Null, Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, String("{0}: {1}", String("Rounds Won", Null, Null, Null), (Event Player).roundsWon, Null), Null, Null, Left, 4, Color(Green), Null, Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, String("{0}: {1}", Custom String("{0} {1}", String("Rounds", Null, Null, Null), String("Played", Null, Null, Null), Null), (Event Player).roundsPlayed, Null), Null, Null, Left, 5, Color(Orange), Null, Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, String("{0}: {1}", String("Eliminations", Null, Null, Null), (Event Player).kills, Null), Null, Null, Left, 6, Color(Red), Null, Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, String("{0}: {1}", Custom String("Corner Request", Null, Null, Null), (Event Player).cornerSpawnRequest, Null), Null, Null, Left, 7, Color(Orange), Null, Null, Visible To and String, Default Visibility);
+        "instructions"
+        Create HUD Text(Event Player, Null, Null, Custom String("Unscoped: Push. Crouch to push self", Null, Null, Null), Left, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Scoped: Powerful push. Crouch to push self", Null, Null, Null), Left, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Nade: Area KB", Null, Null, Null), Left, 10, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Sleep: Pull and stun", Null, Null, Null), Left, 11, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Ult: KB {0}", Icon String(Arrow: Up), Null, Null), Left, 12, Null, Null, Color(White), Visible To and String, Default Visibility);
+        "commands"
+        Create HUD Text(Event Player, Null, Null, Custom String("Corner Spawning toggle: Hold Q + F / ultimate + interact", Null, Null, Null), Right, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Sphere Visibility toggle: Hold SPACE + F / Jump + Interact", Null, Null, Null), Right, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Third Person toggle: Hold RELOAD + F / Reload + Interact", Null, Null, Null), Right, 11, Null, Null, Color(White), Visible To and String, Default Visibility);
+    }
+}
+
+rule ("Player HUD for Host (statistics)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Event Player == Host Player;
+    }
+    actions {
+        Create HUD Text(Event Player, Null, Custom String("GENERAL GAME INFO", Null, Null, Null), Null, Right, 20, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("Gamemode", Null, Null, Null), Global.mode, Null), Null, Right, 21, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Custom String("TEAM GAME INFO", Null, Null, Null), Null, Right, 22, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("List of FreePlayers", Null, Null, Null), Global.freePlayers, Null), Null, Right, 23, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("CustomTeamMode", Null, Null, Null), Global.customTeamMode, Null), Null, Right, 24, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, String("{0}: {1}", Custom String("tempplayer", Null, Null, Null), Global.tempplayer, Null), Null, Right, 25, Null, Color(White), Null, Visible To and String, Default Visibility);
+    }
+}
+
+rule ("Camera - 3rd Person Toggle") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Reload)) == True;
+        Is Button Held(Event Player, Button(Interact)) == True;
+    }
+    actions {
+        If(Compare((Event Player).thirdPersonToggle, ==, 0));
+            Wait(0.116, Ignore Condition);
+            Start Camera(Event Player, Ray Cast Hit Position(Event Player, Add(Add(Add(Event Player, World Vector Of(Vector(-0.15, 0.06, 0.5), Event Player, Rotation)), Multiply(Up, 1.5)), Multiply(Facing Direction Of(Event Player), -3)), Null, Event Player, False), Add(Event Player, Multiply(Facing Direction Of(Event Player), 1000)), Update Every Frame(40));
+            Set Player Variable(Event Player, thirdPersonToggle, 1);
+            Abort;
+        Else If(Compare((Event Player).thirdPersonToggle, ==, 1));
+            Wait(0.116, Ignore Condition);
+            Stop Camera(Event Player);
+            Set Player Variable(Event Player, thirdPersonToggle, 0);
+    }
+}
+
+rule ("Setup Menu Visuals") {
+    event {
+        Ongoing - Global;
+    }
+    actions {
+        "Draw each ball\nfor iterator in range(len(menuArrayVector)):\ncreateEffect(menuVisibility, Effect.SPHERE, Color.GREEN, menuArrayVector[iterator], menuSize, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)\n__end__()\nmanual balls"
+        Create Effect(Global.menuVisibility, Sphere, Color(Lime Green), First Of(Global.menuArrayVector), Global.menuSize, Visible To Position and Radius);
+        Create Effect(Global.menuVisibility, Sphere, Color(Green), Value In Array(Global.menuArrayVector, 1), Global.menuSize, Visible To Position and Radius);
+        Create Effect(Global.menuVisibility, Sphere, Color(Green), Value In Array(Global.menuArrayVector, 2), Global.menuSize, Visible To Position and Radius);
+        Create Effect(Global.menuVisibility, Sphere, Color(Green), Value In Array(Global.menuArrayVector, 3), Global.menuSize, Visible To Position and Radius);
+        Create Effect(Global.menuVisibility, Sphere, Color(Green), Value In Array(Global.menuArrayVector, 4), Global.menuSize, Visible To Position and Radius);
+        Create Effect(Global.menuVisibility, Sphere, Color(Green), Value In Array(Global.menuArrayVector, 5), Global.menuSize, Visible To Position and Radius);
+        "Texts"
+        Create In-World Text(Global.menuVisibility, Custom String("Start Normal Game", Null, Null, Null), First Of(Global.menuArrayVector), Global.menuSize, Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+        Create In-World Text(Global.menuVisibility, Custom String("Start Team Game", Null, Null, Null), Value In Array(Global.menuArrayVector, 1), Global.menuSize, Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+        Create In-World Text(Global.menuVisibility, Custom String("Assign Teams", Null, Null, Null), Value In Array(Global.menuArrayVector, 2), Global.menuSize, Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+        Create In-World Text(Global.menuVisibility, Custom String("-10 Score", Null, Null, Null), Value In Array(Global.menuArrayVector, 3), Global.menuSize, Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+        Create In-World Text(Global.menuVisibility, Custom String("+10 Score", Null, Null, Null), Value In Array(Global.menuArrayVector, 4), Global.menuSize, Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+        Create In-World Text(Global.menuVisibility, Custom String("Infinite Score", Null, Null, Null), Value In Array(Global.menuArrayVector, 5), Global.menuSize, Clip Against Surfaces, Visible To and String, Color(Red), Default Visibility);
+    }
+}
+
+rule ("Hostplayer summon Lobby (CTRL + F / Crouch + Interact)") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Button Held(Host Player, Button(Crouch)) == True;
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.matchStatus != 0;
+    }
+    actions {
+        Set Global Variable(nextMatchStatus, 0);
+        Small Message(Host Player, Custom String("Back to Lobby after this Round", Null, Null, Null));
+    }
+}
+
+rule ("Respawn when dead on Lobby") {
+    event {
+        Player Died;
+        All;
+        All;
+    }
+    conditions {
+        Global.matchStatus == 0;
+    }
+    actions {
+        Teleport(Event Player, First Of(Global.gameArrayVector));
+        Resurrect(Event Player);
+    }
+}
+
+rule ("Game Lobby all Players") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.matchStatus == 0;
+    }
+    actions {
+        Wait(0.5, Ignore Condition);
+        Set Player Variable(Event Player, active, False);
+        Teleport(Event Player, First Of(Global.gameArrayVector));
+        Resurrect(Event Player);
+        Set Player Variable(Event Player, kills, 0);
+        Set Player Variable(Event Player, roundsWon, 0);
+        Set Player Variable(Event Player, roundsPlayed, 0);
+        Set Player Variable(Event Player, score, 0);
+        Set Player Score(Event Player, (Event Player).score);
+        Modify Global Variable(menuVisibility, Append To Array, Event Player);
+    }
+}
+
+rule ("Game Lobby Hostplayer phasing toggle") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Primary Fire)) == True;
+        Is Button Held(Event Player, Button(Interact)) == True;
+        Host Player == Event Player;
+        Global.matchStatus == 0;
+    }
+    actions {
+        If(Has Status(Event Player, Phased Out));
+            Clear Status(Event Player, Phased Out);
+            Small Message(Event Player, Custom String("Phased out disabled!", Null, Null, Null));
+        Else;
+            Set Status(Event Player, Null, Phased Out, 9999);
+            Small Message(Event Player, Custom String("Phased out enabled!", Null, Null, Null));
+    }
+}
+
+rule ("Disable Lobby visibility") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.matchStatus != 0;
+        Global.menuVisibility != Empty Array;
+    }
+    actions {
+        Set Global Variable(menuVisibility, Empty Array);
+    }
+}
+
+rule ("Menuitem Start Normal Game") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Distance Between(Host Player, First Of(Global.menuArrayVector)) <= Add(Global.menuSize, 2);
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.matchStatus == 0;
+    }
+    actions {
+        Set Global Variable(mode, 0);
+        Set Status(All Players(All Teams), Null, Rooted, 2);
+        Big Message(All Players(All Teams), Custom String("Normal Game Starting", Null, Null, Null));
+        Wait(2, Ignore Condition);
+        Set Global Variable(nextMatchStatus, 2);
+        Set Global Variable(matchStatus, Global.nextMatchStatus);
+        Clear Status(All Players(All Teams), Phased Out);
+        Clear Status(All Players(All Teams), Rooted);
+        Set Ability 1 Enabled(Host Player, True);
+        Set Secondary Fire Enabled(Host Player, True);
+    }
+}
+
+rule ("Menuitem Start Team Game") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Distance Between(Host Player, Value In Array(Global.menuArrayVector, 1)) <= Add(Global.menuSize, 2);
+        Is Button Held(Host Player, Button(Interact)) == True;
+        All Players(All Teams) != 2;
+        Global.matchStatus == 0;
+    }
+    actions {
+        Set Global Variable(mode, 1);
+        Set Global Variable(dynamicTeams, True);
+        Set Global Variable(retryDynamic, True);
+        Set Status(All Players(All Teams), Null, Rooted, 2);
+        Big Message(All Players(All Teams), Custom String("Team Game Starting", Null, Null, Null));
+        Wait(2, Ignore Condition);
+        Set Global Variable(nextMatchStatus, 2);
+        Set Global Variable(matchStatus, Global.nextMatchStatus);
+        Clear Status(All Players(All Teams), Phased Out);
+        Clear Status(All Players(All Teams), Rooted);
+        Set Ability 1 Enabled(Host Player, True);
+        Set Secondary Fire Enabled(Host Player, True);
+    }
+}
+
+rule ("Menuitem Assign Teams") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Distance Between(Host Player, Value In Array(Global.menuArrayVector, 2)) <= Add(Global.menuSize, 2);
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.matchStatus == 0;
+    }
+    actions {
+        Set Global Variable(mode, 1);
+        Set Global Variable(searchForMate, True);
+        Big Message(All Players(All Teams), Custom String("To form a Team, you have to punch each other! 10 seconds left!", Null, Null, Null));
+        Wait(5, Ignore Condition);
+        Big Message(All Players(All Teams), Custom String("5 seconds left!", Null, Null, Null));
+        Wait(5, Ignore Condition);
+        Big Message(All Players(All Teams), Custom String("Teams have been made", Null, Null, Null));
+        Set Global Variable(searchForMate, False);
+    }
+}
+
+rule ("Menuitem Score remove 10") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Distance Between(Host Player, Value In Array(Global.menuArrayVector, 3)) <= Add(Global.menuSize, 2);
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.matchStatus == 0;
+    }
+    actions {
+        Modify Global Variable(scoreType, Subtract, 10);
+        Small Message(Host Player, String("{0}: {1}", Custom String("Success ScoreType", Null, Null, Null), Global.scoreType, Null));
+    }
+}
+
+rule ("Menuitem Score add 10") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Distance Between(Host Player, Value In Array(Global.menuArrayVector, 4)) <= Add(Global.menuSize, 2);
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.matchStatus == 0;
+    }
+    actions {
+        Modify Global Variable(scoreType, Add, 10);
+        Small Message(Host Player, String("{0}: {1}", Custom String("Success ScoreType", Null, Null, Null), Global.scoreType, Null));
+    }
+}
+
+rule ("Menuitem Score Infinite") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Distance Between(Host Player, Value In Array(Global.menuArrayVector, 5)) <= Add(Global.menuSize, 2);
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.matchStatus == 0;
+    }
+    actions {
+        Set Global Variable(scoreType, 0);
+        Small Message(Host Player, String("{0}: {1}", Custom String("Success ScoreType", Null, Null, Null), Global.scoreType, Null));
+    }
+}
+
+rule ("1 vs 1 mode on Normal Mode") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Number Of Living Players(All Teams) <= 2;
+        Global.oneVoneMode == False;
+        Global.matchStatus == 1;
+        Global.mode == 0;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Set Global Variable(oneVoneMode, True);
+        Set Ability 1 Enabled(All Living Players(All Teams), True);
+        Big Message(All Players(All Teams), String("{0} vs {1}", First Of(All Living Players(All Teams)), Value In Array(All Living Players(All Teams), 1), Null));
+        If(And(Compare((First Of(All Living Players(All Teams))).cornerSpawnRequest, ==, True), Compare((Value In Array(All Living Players(All Teams), 1)).cornerSpawnRequest, ==, True)));
+            Set Global Variable(cornerSpawning, True);
+            Small Message(All Players(All Teams), Custom String("Corner Spawning ..", Null, Null, Null));
+            Set Status(All Living Players(All Teams), Null, Unkillable, 3);
+            Set Status(All Living Players(All Teams), Null, Rooted, 3);
+            Wait(2, Ignore Condition);
+            Teleport(First Of(All Living Players(All Teams)), Value In Array(Global.gameArrayVector, 2));
+            Teleport(Value In Array(All Living Players(All Teams), 1), Value In Array(Global.gameArrayVector, 3));
+            Set Status(All Living Players(All Teams), Null, Frozen, 1);
+            Set Global Variable(cornerSpawning, False);
+        End;
+        Wait(15, Abort When False);
+        Set Ultimate Charge(All Living Players(All Teams), 100);
+    }
+}
+
+rule ("1 vs 1 mode off Normal Mode") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Or(Compare(Number Of Living Players(All Teams), >, 2), Compare(Global.matchStatus, ==, 0)) == True;
+        Global.oneVoneMode == True;
+        Global.mode == 0;
+    }
+    actions {
+        Wait(0.5, Abort When False);
+        Set Global Variable(oneVoneMode, False);
+    }
+}
+
+rule ("1 vs 1 mode on Team Mode") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Number Of Living Players(All Teams) <= 4;
+        Global.oneVoneMode == False;
+        Global.matchStatus == 1;
+        Global.mode == 1;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Set Global Variable(oneVoneMode, True);
+    }
+}
+
+rule ("1 vs 1 mode off Team Mode") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.oneVoneMode == True;
+        Or(Compare(Number Of Living Players(All Teams), >, 4), Compare(Global.matchStatus, ==, 0)) == True;
+        Global.mode == 1;
+    }
+    actions {
+        Wait(0.5, Abort When False);
+        Set Global Variable(oneVoneMode, False);
+    }
+}
+
+rule ("When 1 v 1 gets Enabled") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Game In Progress == True;
+        Global.oneVoneMode == True;
+    }
+    actions {
+        Set Ability 1 Enabled(All Living Players(All Teams), True);
+        Set Player Variable(All Living Players(All Teams), scopedShotsStun, True);
+        Create Effect(All Players(All Teams), Cloud, Color(White), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii), Visible To Position and Radius);
+        Set Global Variable(oneVoneEffects, Last Created Entity);
+        Wait(15, Abort When False);
+        If(Global.oneVoneMode);
+            Set Ultimate Charge(All Living Players(All Teams), 100);
+        End;
+        Wait(105, Abort When False);
+        If(Global.oneVoneMode);
+            Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
+            Set Global Variable(suddenDeath, True);
+            Set Ultimate Charge(All Living Players(All Teams), 100);
+            Start Holding Button(All Living Players(All Teams), Button(Ultimate));
+            Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), First Of(Global.gameArrayVector), First Of(Global.gameArrayOfRadii));
+            Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), First Of(Global.gameArrayVector), 200);
+        End;
+        Wait(25, Abort When False);
+        Kill(All Living Players(All Teams), Null);
+    }
+}
+
+rule ("Ultimate Ability: Increased Knockback") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Using Ultimate(Event Player) == True;
+    }
+    actions {
+        Set Player Variable(Event Player, ultMultiplier, 1.4);
+        If(Global.suddenDeath);
+            Set Player Variable(Event Player, ultMultiplier, 50);
+            Start Scaling Player(Event Player, 2, True);
+            Wait Until(Not(Global.oneVoneMode), 99999);
+            Start Scaling Player(Event Player, 1, False);
+            Set Player Variable(Event Player, ultMultiplier, 1);
+        End;
+        Wait(8, Ignore Condition);
+        Set Player Variable(Event Player, ultMultiplier, 1);
+    }
+}
+
+rule ("Ultimate Ability: Impulse on trigger") {
+    event {
+        Player Took Damage;
+        All;
+        All;
+    }
+    conditions {
+        Or(Has Status(Event Player, Stunned), Has Status(Victim, Rooted)) == True;
+    }
+    actions {
+        Wait(0.1, Ignore Condition);
+        Clear Status(Victim, Stunned);
+        Clear Status(Victim, Rooted);
+    }
+}
+
+rule ("Ultimate Ability: Impulse on trigger") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is In Air(Event Player) == True;
+        Distance Between(Position Of(Event Player), First Of(Global.gameArrayVector)) > 26;
+    }
+    actions {
+        Wait(0.2, Ignore Condition);
+        Wait Until(And(Is Button Held(Event Player, Button(Ultimate)), Compare(Ultimate Charge Percent(Event Player), ==, 100)), 99999);
+        Apply Impulse(Event Player, Add(First Of(Global.gameArrayVector), Vector(0, 0.75, 0)), 12, To World, Cancel Contrary Motion);
+    }
+}
+
+rule ("When 1 v 1 gets Disabled") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Game In Progress == True;
+        Global.oneVoneMode == False;
+    }
+    actions {
+        Set Global Variable(suddenDeath, False);
+        Set Ability 1 Enabled(All Living Players(All Teams), False);
+        Set Player Variable(All Living Players(All Teams), scopedShotsStun, False);
+        Set Ultimate Charge(All Players(All Teams), 0);
+        Destroy Effect(Global.oneVoneEffects);
+    }
+}
+
+rule ("Toggle Corner spawn request") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Interact)) == True;
+        Is Button Held(Event Player, Button(Ultimate)) == True;
+    }
+    actions {
+        Wait(1, Abort When False);
+        Set Player Variable(Event Player, cornerSpawnRequest, Not((Event Player).cornerSpawnRequest));
+        Small Message(Event Player, Custom String("{0} {1}", Custom String("Corner spawn request: ", Null, Null, Null), (Event Player).cornerSpawnRequest, Null));
+    }
+}
+
+rule ("Circle Spawning") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.circleSpawning == True;
+    }
+    actions {
+        Teleport(Event Player, Vector(Add(X Component Of(First Of(Global.gameArrayVector)), Multiply(8, Cosine From Degrees(Multiply(Add(Index Of Array Value(All Players(All Teams), Event Player), Global.totalRounds), Divide(360, Number Of Players(All Teams)))))), Y Component Of(First Of(Global.gameArrayVector)), Add(Z Component Of(First Of(Global.gameArrayVector)), Multiply(8, Sine From Degrees(Multiply(Add(Index Of Array Value(All Players(All Teams), Event Player), Global.totalRounds), Divide(360, Number Of Players(All Teams))))))));
+    }
+}
+
+rule ("Start Round and Ressurect") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.matchStatus == 2;
+        Global.initiatedStart == False;
+    }
+    actions {
+        Set Global Variable(initiatedStart, True);
+        Set Player Variable(All Players(All Teams), active, True);
+        Set Global Variable(oneVoneMode, True);
+        Modify Player Variable(All Players(All Teams), roundsPlayed, Add, 1);
+        Modify Global Variable(totalRounds, Add, 1);
+        Wait(0.01, Ignore Condition);
+        Set Global Variable(oneVoneMode, False);
+        Set Global Variable(circleSpawning, True);
+        Stop Scaling Player(All Players(All Teams));
+        Resurrect(All Players(All Teams));
+        Set Status(All Players(All Teams), Null, Rooted, 4);
+        Set Status(All Players(All Teams), Null, Frozen, 4);
+        Set Global Variable(matchStatus, 1);
+        Set Global Variable(initiatedStart, False);
+        Wait(4, Ignore Condition);
+        Set Global Variable(circleSpawning, False);
+    }
+}
+
+rule ("End Round Mode 0") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Number Of Living Players(All Teams) <= 1;
+        Number Of Dead Players(All Teams) >= 1;
+        Global.matchStatus == 1;
+        Global.initiatedStart == False;
+        Global.mode == 0;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Modify Player Variable(All Living Players(All Teams), roundsWon, Add, 1);
+        Big Message(All Players(All Teams), Custom String("{0} {1}", All Living Players(All Teams), String("Wins", Null, Null, Null), Null));
+        Set Ultimate Charge(All Players(All Teams), 0);
+        Stop Scaling Player(All Players(All Teams));
+        Wait(4, Ignore Condition);
+        Set Global Variable(matchStatus, Global.nextMatchStatus);
+        Set Match Time(900);
+    }
+}
+
+rule ("End Round Mode 1") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Number Of Living Players(All Teams) <= 2;
+        Number Of Dead Players(All Teams) >= 1;
+        Global.matchStatus == 1;
+        Global.initiatedStart == False;
+        Global.mode == 1;
+        Or(Compare(First Of(All Living Players(All Teams)), ==, (Value In Array(All Living Players(All Teams), 1)).teammate), Compare(Number Of Living Players(All Teams), <=, 1)) == True;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Modify Player Variable(First Of(All Living Players(All Teams)), roundsWon, Add, 1);
+        Modify Player Variable((First Of(All Living Players(All Teams))).teammate, roundsWon, Add, 1);
+        Big Message(All Players(All Teams), Custom String("{0} {1}", String("{0} and {1}", First Of(All Living Players(All Teams)), (First Of(All Living Players(All Teams))).teammate, Null), String("Win", Null, Null, Null), Null));
+        Set Ultimate Charge(All Players(All Teams), 0);
+        Set Global Variable(winners, All Living Players(All Teams));
+        Kill(First Of(Global.winners), Null);
+        Kill(Value In Array(Global.winners, 1), Null);
+        Stop Scaling Player(All Players(All Teams));
+        Wait(1, Ignore Condition);
+        Resurrect(First Of(Global.winners));
+        Resurrect(Value In Array(Global.winners, 1));
+        Wait(4, Ignore Condition);
+        Set Global Variable(matchStatus, Global.nextMatchStatus);
+        Set Match Time(900);
+    }
+}
+
+rule ("Kill Player out of Sphere 1 (All Maps)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Distance Between(Event Player, First Of(Global.gameArrayVector)) >= First Of(Global.gameArrayOfRadii);
+        Global.cornerSpawning == False;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Kill(Event Player, (Event Player).killer);
+    }
+}
+
+rule ("Kill Player inside Sphere 2 (King's Row)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Distance Between(Event Player, Value In Array(Global.gameArrayVector, 1)) <= Value In Array(Global.gameArrayOfRadii, 1);
+        Or(Compare(Current Map, ==, Map(King's Row)), Compare(Current Map, ==, Map(King's Row Winter))) == True;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Kill(Event Player, (Event Player).killer);
+    }
+}
+
+rule ("Kill Player when on invi platform (King's Row)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Y Component Of(Position Of(Event Player)) <= 37.51;
+        Y Component Of(Position Of(Event Player)) >= 36.51;
+        Is Alive(Event Player) == True;
+        Or(Compare(Current Map, ==, Map(King's Row)), Compare(Current Map, ==, Map(King's Row Winter))) == True;
+        Global.cornerSpawning == False;
+    }
+    actions {
+        Wait(2, Abort When False);
+        Big Message(Event Player, String("Not Today", Null, Null, Null));
+        Kill(Event Player, (Event Player).killer);
+    }
+}
+
+rule ("Kill Player when below map height for more than 5 seconds (All maps)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Y Component Of(Position Of(Event Player)) <= Global.mapHeight;
+        Is Alive(Event Player) == True;
+        Global.cornerSpawning == False;
+    }
+    actions {
+        Wait(4, Abort When False);
+        Big Message(Event Player, Custom String("Get back to platform or die", Null, Null, Null));
+        Wait(2, Abort When False);
+        Kill(Event Player, (Event Player).killer);
+    }
+}
+
+rule ("Kill Player when not involved in Round") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).active == False;
+        Global.matchStatus == 1;
+        Is Alive(Event Player) == True;
+    }
+    actions {
+        Wait(0.1, Abort When False);
+        Kill(Event Player, Null);
+        Disable Built-In Game Mode Respawning(Event Player);
+        Enable Death Spectate All Players(Event Player);
+        Enable Death Spectate Target HUD(Event Player);
+    }
+}
+
+rule ("Events when player dies and active") {
+    event {
+        Player Died;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).active == True;
+    }
+    actions {
+        Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), Position Of(Event Player), 6);
+        Play Effect(All Players(All Teams), Explosion Sound, Color(Blue), Position Of(Event Player), 100);
+        Create Effect(All Players(All Teams), Bad Aura, Color(Sky Blue), Position Of(Event Player), 3, Visible To);
+        Set Player Variable(Event Player, deathEffect, Last Created Entity);
+        Set Player Variable(Event Player, active, False);
+        Wait(2, Ignore Condition);
+        Destroy Effect((Event Player).deathEffect);
+        Set Player Variable(Event Player, deathEffect, Null);
+        Disable Built-In Game Mode Respawning(Event Player);
+        Enable Death Spectate All Players(Event Player);
+        Enable Death Spectate Target HUD(Event Player);
+    }
+}
+
+rule ("Kill Counter") {
+    event {
+        Player Earned Elimination;
+        All;
+        All;
+    }
+    conditions {
+        Global.matchStatus == 1;
+    }
+    actions {
+        Modify Player Variable(Event Player, kills, Add, 1);
+    }
+}
+
+rule ("When Score below 0 -> set 0") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.scoreType < 0;
+    }
+    actions {
+        Set Global Variable(scoreType, 0);
+    }
+}
+
+rule ("After Round calculate Skill rating (Infinite Match)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.matchStatus == 2;
+        Global.scoreType == 0;
+        Global.initiatedStart == False;
+    }
+    actions {
+        Set Player Variable(Event Player, score, Multiply(Divide((Event Player).roundsWon, (Event Player).roundsPlayed), 100));
+        Set Player Score(Event Player, (Event Player).score);
+    }
+}
+
+rule ("After Round set Scoring (limited Points)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.matchStatus == 2;
+        Global.scoreType > 0;
+        Global.initiatedStart == False;
+    }
+    actions {
+        Set Player Score(Event Player, (Event Player).roundsWon);
+    }
+}
+
+rule ("Declare win (limited Points)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.scoreType > 0;
+        (Event Player).roundsWon >= Global.scoreType;
+    }
+    actions {
+        Declare Player Victory(Event Player);
+    }
+}
+
+rule ("Ana Grenade Constants") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Hero Of(Event Player) == Hero(Ana);
+    }
+    actions {
+        Set Ammo(Event Player, 0, 3);
+        Set Max Ammo(Event Player, 0, 3);
+        Set Player Variable(Event Player, ultMultiplier, 1);
+        Set Reload Enabled(Event Player, False);
+        Set Ability 1 Enabled(Event Player, False);
+        Set Player Variable(Event Player, anaNade1, 30);
+        Set Player Variable(Event Player, anaNade2, 1);
+        Set Player Variable(Event Player, anaNadeGravity, 9.806);
+        Set Player Variable(Event Player, anaNade4, 4);
+    }
+}
+
+rule ("Ana Health Reset") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    actions {
+        Set Player Health(Event Player, 199);
+        Wait(0.5, Ignore Condition);
+        Loop;
+    }
+}
+
+rule ("Biotic Grenade Trajectory") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    actions {
+        Set Player Variable(Event Player, anaNade5, Multiply(Multiply((Event Player).anaNade1, -1), Sine From Degrees(Vertical Facing Angle Of(Event Player))));
+        Set Player Variable(Event Player, anaNade6, Square Root(Multiply((Event Player).anaNade5, (Event Player).anaNade5)));
+        Set Player Variable(Event Player, anaNade7, Multiply(Multiply(2, (Event Player).anaNadeGravity), (Event Player).anaNade2));
+        Set Player Variable(Event Player, anaNade8, Divide(Add((Event Player).anaNade5, Square Root(Add(Multiply((Event Player).anaNade5, (Event Player).anaNade5), (Event Player).anaNade7))), (Event Player).anaNadeGravity));
+        Set Player Variable(Event Player, anaNade9, Multiply((Event Player).anaNade1, Cosine From Degrees(Vertical Facing Angle Of(Event Player))));
+        Set Player Variable(Event Player, anaNade10, Multiply((Event Player).anaNade9, (Event Player).anaNade8));
+        "eventPlayer.anaNade10 = eventPlayer.anaNade1 ** 2 * (sinDeg(eventPlayer.getVerticalFacingAngle() * -2)) / eventPlayer.anaNadeGravity"
+        Set Player Variable(Event Player, anaNadeLandingVector, Add(Position Of(Event Player), Multiply(Normalize(Multiply(Facing Direction Of(Event Player), Vector(1, 0, 1))), (Event Player).anaNade10)));
+        Set Player Variable(Event Player, anaNadeLandingPosition, Ray Cast Hit Position(Add((Event Player).anaNadeLandingVector, Multiply(100, Up)), (Event Player).anaNadeLandingVector, All Players(All Teams), Event Player, True));
+        Wait(0.1, Ignore Condition);
+        Loop;
+    }
+}
+
+rule ("Ana Primary ammo HUD") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    actions {
+        Set Player Variable(Event Player, primaryAmmo, 2);
+        Set Player Variable(Event Player, primaryAmmoChase, 0);
+        Wait(0.025, Ignore Condition);
+        Create In-World Text(Event Player, Custom String("Primary ammo: {0}", (Event Player).primaryAmmo, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.3, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
+        Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
+        Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
+        Set Player Variable(Event Player, primaryAmmo, 1);
+        Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
+        Set Player Variable(Event Player, primaryAmmo, 0);
+        Destroy In-World Text((Event Player).primaryAmmoHud);
+        Set Primary Fire Enabled(Event Player, False);
+        Wait(0.016, Ignore Condition);
+        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(33.33, (Event Player).ultMultiplier), Destination and Rate);
+        Create In-World Text(Event Player, Custom String("Primary: 0, Reloading {0}%", (Event Player).primaryAmmoChase, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.3, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
+        Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
+        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 3);
+        Wait(0.016, Ignore Condition);
+        Destroy In-World Text((Event Player).primaryAmmoHud);
+        Stop Chasing Player Variable(Event Player, primaryAmmoChase);
+        Set Player Variable(Event Player, primaryAmmo, 2);
+        Wait(0.05, Ignore Condition);
+        Loop;
+    }
+}
+
+rule ("Ana Secondary ammo HUD") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    actions {
+        Set Player Variable(Event Player, secondaryAmmo, 1);
+        Set Player Variable(Event Player, secondaryAmmoChase, 0);
+        Wait(0.025, Ignore Condition);
+        If(Not(Entity Exists((Event Player).secondaryAmmoHud)));
+            Create In-World Text(Event Player, Custom String("Scoped ammo: {0}", (Event Player).secondaryAmmo, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.4, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
+            Set Player Variable(Event Player, secondaryAmmoHud, Last Text ID);
+        End;
+        Wait Until(And(Is Firing Primary(Event Player), Is Firing Secondary(Event Player)), 99999);
+        Destroy In-World Text((Event Player).secondaryAmmoHud);
+        Set Player Variable(Event Player, secondaryAmmo, 0);
+        Wait(0.016, Ignore Condition);
+        Chase Player Variable At Rate(Event Player, secondaryAmmoChase, 100, Multiply(20, (Event Player).ultMultiplier), Destination and Rate);
+        Create In-World Text(Event Player, Custom String("Scoped: 0, Reloading {0}%", (Event Player).secondaryAmmoChase, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.4, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
+        Set Player Variable(Event Player, secondaryAmmoHud, Last Text ID);
+        Wait Until(Compare((Event Player).secondaryAmmoChase, ==, 100), 5);
+        Wait(0, Ignore Condition);
+        Destroy In-World Text((Event Player).secondaryAmmoHud);
+        Stop Chasing Player Variable(Event Player, secondaryAmmoChase);
+        Set Player Variable(Event Player, secondaryAmmo, 1);
+        Wait(0.05, Ignore Condition);
+        Loop;
+    }
+}
+
+rule ("Ammo Allocation 1") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).primaryAmmo == 0;
+        (Event Player).secondaryAmmo == 0;
+    }
+    actions {
+        Set Ammo(Event Player, 0, 0);
+        Set Primary Fire Enabled(Event Player, False);
+        Set Secondary Fire Enabled(Event Player, False);
+    }
+}
+
+rule ("Ammo Allocation 2") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Or(Compare((Event Player).primaryAmmo, ==, 1), And(Compare((Event Player).primaryAmmo, ==, 2), Compare((Event Player).secondaryAmmo, ==, 0))) == True;
+    }
+    actions {
+        If(Compare((Event Player).primaryAmmo, ==, 1));
+            Set Ammo(Event Player, 0, 1);
+        Else If(Compare((Event Player).primaryAmmo, ==, 2));
+            Set Ammo(Event Player, 0, 2);
+        End;
+        Set Secondary Fire Enabled(Event Player, False);
+        Set Primary Fire Enabled(Event Player, True);
+        Wait(0.016, Ignore Condition);
+    }
+}
+
+rule ("Ammo Allocation 3") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Or(And(Compare((Event Player).secondaryAmmo, ==, 1), Compare((Event Player).primaryAmmo, ==, 1)), Compare((Event Player).primaryAmmo, ==, 2)) == True;
+    }
+    actions {
+        Set Primary Fire Enabled(Event Player, True);
+        Set Secondary Fire Enabled(Event Player, True);
+        If(Compare((Event Player).primaryAmmo, ==, 1));
+            Set Ammo(Event Player, 0, 2);
+        Else If(Compare((Event Player).primaryAmmo, ==, 2));
+            Set Ammo(Event Player, 0, 3);
+    }
+}
+
+rule ("Ammo Allocation 4") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).primaryAmmo == 0;
+        (Event Player).secondaryAmmo == 1;
+    }
+    actions {
+        Set Ammo(Event Player, 0, 1);
+        Set Secondary Fire Enabled(Event Player, True);
+        While(Compare((Event Player).primaryAmmo, ==, 0));
+            While(Is Firing Secondary(Event Player));
+                If(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).primaryAmmo, ==, 2)));
+                    Break;
+                End;
+                Set Primary Fire Enabled(Event Player, True);
+                Wait(0.016, Ignore Condition);
+            End;
+            If(Not(Is Firing Secondary(Event Player)));
+                Set Primary Fire Enabled(Event Player, False);
+            End;
+            Wait(0.016, Ignore Condition);
+        End;
+    }
+}
+
+rule ("Primary Fire: Friendly Impulse") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Firing Primary(Event Player) == True;
+        Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
+    }
+    actions {
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.25, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(1, Ignore Condition);
+    }
+}
+
+rule ("Primary Fire: Enemy Push") {
+    event {
+        Player Dealt Damage;
+        All;
+        All;
+    }
+    conditions {
+        Event Ability == Button(Primary Fire);
+        Victim != (Event Player).teammate;
+    }
+    actions {
+        Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 14))));
+        Set Status(Victim, Attacker, Rooted, 0.85);
+        Apply Impulse(Victim, Vector(0, 0.25, 0), Multiply(5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.25, Ignore Condition);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.6, Ignore Condition);
+    }
+}
+
+rule ("Secondary Fire: Friendly Impulse") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Firing Secondary(Event Player) == True;
+        Is Button Held(Event Player, Button(Primary Fire)) == True;
+        Or(Is Button Held(Event Player, Button(Crouch)), Is Crouching(Event Player)) == True;
+    }
+    actions {
+        Wait Until(Compare((Event Player).secondaryAmmo, ==, 0), 99999);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.25, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(1, Ignore Condition);
+    }
+}
+
+rule ("Secondary Fire: Enemy Push") {
+    event {
+        Player Dealt Damage;
+        All;
+        All;
+    }
+    conditions {
+        Is Firing Secondary(Event Player) == True;
+        Is Button Held(Event Player, Button(Primary Fire)) == True;
+        Victim != (Event Player).teammate;
+        Is Meleeing(Event Player) == False;
+    }
+    actions {
+        Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 14))));
+        If(Compare((Event Player).scopedShotsStun, ==, True));
+            Set Status(Victim, Attacker, Stunned, Multiply(0.75, (Event Player).ultMultiplier));
+        End;
+        Set Status(Victim, Attacker, Rooted, 1);
+        Apply Impulse(Victim, Vector(0, 0.5, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(18.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.25, Ignore Condition);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(18.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(0.6, Ignore Condition);
+    }
+}
+
+rule ("Sleep Dart lands, pulls") {
+    event {
+        Player Took Damage;
+        All;
+        All;
+    }
+    conditions {
+        Event Ability == Button(Ability 1);
+        Victim != (Event Player).teammate;
+    }
+    actions {
+        Wait(0.1, Ignore Condition);
+        Clear Status(Victim, Asleep);
+        Apply Impulse(Victim, Add(Direction Towards(Victim, Attacker), Vector(0, 0.9, 0)), 8, To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, Direction Towards(Victim, Attacker), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, Add(Direction Towards(Victim, Attacker), Vector(0, 0.9, 0)), 8, To World, Cancel Contrary Motion);
+        Set Status(Victim, Attacker, Stunned, 2.25);
+    }
+}
+
+rule ("Sleep Dart: Propel Forward") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Is Button Held(Event Player, Button(Ability 1)) == True;
+        Ability Cooldown(Event Player, Button(Ability 1)) == 0;
+        Is Using Ability 1(Event Player) == True;
+    }
+    actions {
+        Wait(0.65, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 1, 0)), 8, To World, Cancel Contrary Motion);
+    }
+}
+
+rule ("Biotic Grenade: Friendly KB") {
+    event {
+        Player Dealt Healing;
+        All;
+        All;
+    }
+    conditions {
+        Healer == Healee;
+        Event Ability == Button(Ability 2);
+    }
+    actions {
+        Apply Impulse(Healee, Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.25, 0)), Eye Position(Healee)), Multiply(15, (Event Player).ultMultiplier), To Player, Cancel Contrary Motion);
+    }
+}
+
+rule ("Biotic Grenade: Enemy KB") {
+    event {
+        Player Dealt Damage;
+        All;
+        All;
+    }
+    conditions {
+        Event Ability == Button(Ability 2);
+    }
+    actions {
+        Play Effect(All Players(All Teams), Good Explosion, Color(Blue), (Event Player).anaNadeLandingPosition, 1.5);
+        Play Effect(All Players(All Teams), Good Explosion, Color(Yellow), (Event Player).anaNadeLandingPosition, 3);
+        Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
+        For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
+            Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), 16, To World, Cancel Contrary Motion);
+            Set Status(Value In Array((Event Player).affectedPlayers, (Event Player).index), Null, Rooted, 0.6);
+            Wait(0.016, Ignore Condition);
+        End;
+    }
+}
+
+rule ("Melee KB") {
+    event {
+        Player Dealt Damage;
+        All;
+        All;
+    }
+    conditions {
+        Is Meleeing(Event Player) == True;
+        Distance Between(Attacker, Victim) <= 3;
+    }
+    actions {
+        Apply Impulse(Victim, Add(Facing Direction Of(Event Player), Vector(0, 0.5, 0)), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+    }
+}
+
+rule ("Register last PlayerDealtDamage as Killer") {
+    event {
+        Player Took Damage;
+        All;
+        All;
+    }
+    actions {
+        Set Player Variable(Event Player, killer, Null);
+        Wait(0.01, Ignore Condition);
+        Set Player Variable(Event Player, killer, Attacker);
+    }
+}
+
+rule ("Decay Killer status after 5 secs") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).killer != Null;
+        Is Game In Progress == True;
+        Global.searchForMate == False;
+    }
+    actions {
+        Wait(5, Abort When False);
+        Set Player Variable(Event Player, killer, Null);
+    }
+}
+
+rule ("Global Variables Team") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.mode != 1;
+    }
+    actions {
+        Set Player Variable(All Players(All Teams), teammate, Null);
+        Destroy HUD Text((All Players(All Teams)).mateHUD);
+        Set Player Variable(All Players(All Teams), mateHUD, Null);
+        Set Global Variable(dynamicTeams, False);
+        Set Global Variable(freePlayers, Empty Array);
+        Set Global Variable(retryDynamic, False);
+        Set Global Variable(customTeamMode, False);
+        Set Global Variable(customTeam, Empty Array);
+        Set Global Variable(tempplayer, Null);
+        Set Global Variable(searchForMate, False);
+    }
+}
+
+rule ("Draw Teammate Hud for each player") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.mode == 1;
+        (Event Player).mateHUD == Null;
+    }
+    actions {
+        Create HUD Text(Event Player, String("{0}: {1}", Custom String("Teammate", Null, Null, Null), (Event Player).teammate, Null), Null, Null, Left, 7, Color(Sky Blue), Null, Null, Visible To and String, Default Visibility);
+        Set Player Variable(Event Player, mateHUD, Last Text ID);
+    }
+}
+
+rule ("When Dynamic Teams Enabled Player") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.dynamicTeams == True;
+        (Event Player).teammate == Null;
+        Array Contains(Global.freePlayers, Event Player) == False;
+    }
+    actions {
+        Wait(1, Abort When False);
+        Modify Global Variable(freePlayers, Append To Array, Event Player);
+    }
+}
+
+rule ("When Dynamic Teams Disabled Player") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Game In Progress == True;
+    }
+    actions {
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.3.0", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+    }
+}
+
+rule ("When Dynamic Teams Enabled Global") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.dynamicTeams == True;
+        Global.retryDynamic == True;
+        Count Of(Global.freePlayers) >= 2;
+    }
+    actions {
+        Set Global Variable(retryDynamic, False);
+        Set Player Variable(First Of(Global.freePlayers), teammate, Value In Array(Global.freePlayers, 1));
+        Set Player Variable(Value In Array(Global.freePlayers, 1), teammate, First Of(Global.freePlayers));
+        Wait(0.1, Ignore Condition);
+        Set Global Variable(retryDynamic, True);
+    }
+}
+
+rule ("Release mated Players from FreePlayers List (Dynamic Teams)") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).teammate != Null;
+        Array Contains(Global.freePlayers, Event Player) == True;
+    }
+    actions {
+        Modify Global Variable(freePlayers, Remove From Array By Value, Event Player);
+    }
+}
+
+rule ("Release Leaving Players from FreePlayers List (Dynamic Teams)") {
+    event {
+        Player Left Match;
+        All;
+        All;
+    }
+    conditions {
+        Array Contains(Global.freePlayers, Event Player) == True;
+    }
+    actions {
+        Modify Global Variable(freePlayers, Remove From Array By Value, Event Player);
+    }
+}
+
+rule ("Search for Mate") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Global.searchForMate == True;
+        ((Event Player).killer).killer == Event Player;
+    }
+    actions {
+        Set Player Variable(Event Player, teammate, Null);
+        Wait(0.016, Ignore Condition);
+        Set Player Variable(Event Player, teammate, (Event Player).killer);
+    }
+}
+
+rule ("Teammate found") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).teammate != Null;
+    }
+    actions {
+        Wait(0.5, Abort When False);
+        Small Message(Event Player, String("{0}: {1}", Custom String("Your Teammate is ", Null, Null, Null), (Event Player).teammate, Null));
+    }
+}
+
+rule ("Teammate effect") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).teammate != Null;
+    }
+    actions {
+        Create In-World Text((Event Player).teammate, String("Teammate", Null, Null, Null), Event Player, 1, Clip Against Surfaces, Visible To Position and String, Color(Green), Default Visibility);
+    }
+}
+
+rule ("Teammate Lost") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).teammate == Null;
+    }
+    actions {
+        Small Message(Event Player, Custom String("You have no Teammate", Null, Null, Null));
+    }
+}
+
+rule ("Remove teammate reference when hes not ingame") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        Array Contains(All Players(All Teams), (Event Player).teammate) == False;
+    }
+    actions {
+        Set Player Variable(Event Player, teammate, Null);
+    }
+}
+
+rule ("Check for Team errors and delete them") {
+    event {
+        Ongoing - Each Player;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).teammate != Null;
+        ((Event Player).teammate).teammate != Event Player;
+    }
+    actions {
+        Wait(0.5, Abort When False);
+        Set Player Variable(Event Player, teammate, Null);
+        Small Message(Host Player, Custom String("There has been a Team Error! But dont worry I fixed it :D", Null, Null, Null));
+    }
+}
+
+rule ("Events when teammate dies") {
+    event {
+        Player Died;
+        All;
+        All;
+    }
+    conditions {
+        (Event Player).teammate != Null;
+    }
+    actions {
+        Big Message((Event Player).teammate, Custom String("Your Teammate Died!", Null, Null, Null));
+    }
+}
+
+rule ("Activate customTeamMode (Ability 1 + Interact)") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Button Held(Host Player, Button(Ability 1)) == True;
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.mode == 1;
+        Global.customTeamMode == False;
+    }
+    actions {
+        Set Global Variable(customTeamMode, True);
+        Small Message(Host Player, Custom String("Custom Team Mode active! Select first Player", Null, Null, Null));
+        Set Status(Host Player, Null, Phased Out, 9999);
+        Create In-World Text(All Players(All Teams), Custom String("IN MENU UNKILLABLE", Null, Null, Null), Host Player, 1, Clip Against Surfaces, Visible To Position and String, Color(Red), Default Visibility);
+        Set Global Variable(inMenuText, Last Text ID);
+    }
+}
+
+rule ("Cycle Tempplayer forward (Mouse1)") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Button Held(Host Player, Button(Primary Fire)) == True;
+        Global.customTeamMode == True;
+        Index Of Array Value(All Players(All Teams), Global.tempplayer) < Subtract(Number Of Players(All Teams), 1);
+    }
+    actions {
+        Set Global Variable(tempplayer, Value In Array(All Players(All Teams), Add(Index Of Array Value(All Players(All Teams), Global.tempplayer), 1)));
+        Small Message(Host Player, Custom String("{0} {1}", Global.tempplayer, Custom String("selected", Null, Null, Null), Null));
+    }
+}
+
+rule ("Cycle Tempplayer backward (Mouse2)") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Button Held(Host Player, Button(Secondary Fire)) == True;
+        Global.customTeamMode == True;
+        Index Of Array Value(All Players(All Teams), Global.tempplayer) > 0;
+    }
+    actions {
+        Set Global Variable(tempplayer, Value In Array(All Players(All Teams), Subtract(Index Of Array Value(All Players(All Teams), Global.tempplayer), 1)));
+        Small Message(Host Player, Custom String("{0} {1}", Global.tempplayer, Custom String("selected", Null, Null, Null), Null));
+    }
+}
+
+rule ("Confirm Player add to Team") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Is Button Held(Host Player, Button(Ability 2)) == True;
+        Is Button Held(Host Player, Button(Interact)) == True;
+        Global.customTeamMode == True;
+        Global.tempplayer != Null;
+        Count Of(Global.customTeam) < 2;
+        Array Contains(Global.customTeam, Global.tempplayer) == False;
+    }
+    actions {
+        Modify Global Variable(customTeam, Append To Array, Global.tempplayer);
+        Small Message(Host Player, Custom String("{0} {1}", Global.tempplayer, Custom String(" Added", Null, Null, Null), Null));
+        Wait(0.016, Ignore Condition);
+        Set Global Variable(tempplayer, Null);
+    }
+}
+
+rule ("Create Team when 2 Players confirmed") {
+    event {
+        Ongoing - Global;
+    }
+    conditions {
+        Global.customTeamMode == True;
+        Count Of(Global.customTeam) == 2;
+    }
+    actions {
+        Set Player Variable(First Of(Global.customTeam), teammate, Value In Array(Global.customTeam, 1));
+        Set Player Variable(Value In Array(Global.customTeam, 1), teammate, First Of(Global.customTeam));
+        Small Message(Host Player, Custom String("{0} {1}", String("{0} and {1}", First Of(Global.customTeam), Value In Array(Global.customTeam, 1), Null), Custom String(" are in a Team", Null, Null, Null), Null));
+        Wait(0.016, Ignore Condition);
+        Set Global Variable(customTeamMode, False);
+        Set Global Variable(customTeam, Empty Array);
+        Set Global Variable(tempplayer, Null);
+        Clear Status(Host Player, Phased Out);
+        Destroy In-World Text(Global.inMenuText);
+    }
+}
+
