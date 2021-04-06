@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.3.1), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.3.0), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -1165,7 +1165,7 @@ rule ("Ana Primary ammo HUD") {
         Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
         Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
         Set Player Variable(Event Player, primaryAmmo, 1);
-        Wait(0.25, Ignore Condition);
+        Wait(0.3, Ignore Condition);
         Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
         Set Player Variable(Event Player, primaryAmmo, 0);
         Destroy In-World Text((Event Player).primaryAmmoHud);
@@ -1242,10 +1242,10 @@ rule ("Ammo Allocation 2") {
         Or(Compare((Event Player).primaryAmmo, ==, 1), And(Compare((Event Player).primaryAmmo, ==, 2), Compare((Event Player).secondaryAmmo, ==, 0))) == True;
     }
     actions {
-        If(Compare((Event Player).primaryAmmo, ==, 1));
-            Set Ammo(Event Player, 0, 1);
-        Else If(Compare((Event Player).primaryAmmo, ==, 2));
+        If(Compare((Event Player).primaryAmmo, ==, 2));
             Set Ammo(Event Player, 0, 2);
+        Else If(Compare((Event Player).primaryAmmo, ==, 1));
+            Set Ammo(Event Player, 0, 1);
         End;
         Set Secondary Fire Enabled(Event Player, False);
         Set Primary Fire Enabled(Event Player, True);
@@ -1265,10 +1265,10 @@ rule ("Ammo Allocation 3") {
     actions {
         Set Primary Fire Enabled(Event Player, True);
         Set Secondary Fire Enabled(Event Player, True);
-        If(Compare((Event Player).primaryAmmo, ==, 1));
-            Set Ammo(Event Player, 0, 2);
-        Else If(Compare((Event Player).primaryAmmo, ==, 2));
+        If(Compare((Event Player).primaryAmmo, ==, 2));
             Set Ammo(Event Player, 0, 3);
+        Else If(Compare((Event Player).primaryAmmo, ==, 1));
+            Set Ammo(Event Player, 0, 2);
     }
 }
 
@@ -1569,7 +1569,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.3.1", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.3.0", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
@@ -1814,3 +1814,5 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
+
+
