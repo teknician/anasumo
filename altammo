@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Ana Sumo (v.3.0), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
+		Description: "Ana Sumo (v.3.1), By LUCKYNUMBER. King's Row only. Adapted from Doom Sumo by Crebos. (Doom Sumo discord here: https://discord.gg/7dYEfzh) Abilities: Sleep dart pulls you forward and any hit enemies towards you. Grenade pushes you away. Firing pushes you and knocks back enemies. Scoped is more powerful than unscoped. Code: MMD2B"
 	}
 	lobby
 	{
@@ -51,7 +51,7 @@ settings
 				Damage Dealt: 10%
 				Damage Received: 10%
 				Sleep Dart Cooldown Time: 55%
-				Biotic Grenade Cooldown Time: 75%
+				Biotic Grenade Cooldown Time: 70%
 				Ultimate Generation - Combat Nano Boost: 0%
 				Ultimate Generation - Passive Nano Boost: 0%
 				Ultimate Generation Nano Boost: 10%
@@ -330,8 +330,8 @@ rule ("Player HUD Normal") {
         Create HUD Text(Event Player, String("{0}: {1}", String("Eliminations", Null, Null, Null), (Event Player).kills, Null), Null, Null, Left, 6, Color(Red), Null, Null, Visible To and String, Default Visibility);
         Create HUD Text(Event Player, String("{0}: {1}", Custom String("Corner Request", Null, Null, Null), (Event Player).cornerSpawnRequest, Null), Null, Null, Left, 7, Color(Orange), Null, Null, Visible To and String, Default Visibility);
         "instructions"
-        Create HUD Text(Event Player, Null, Null, Custom String("Unscoped: Push. Crouch to push self", Null, Null, Null), Left, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
-        Create HUD Text(Event Player, Null, Null, Custom String("Scoped: Powerful push. Crouch to push self", Null, Null, Null), Left, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Unscoped: Push. + Crouch to push self", Null, Null, Null), Left, 8, Null, Null, Color(White), Visible To and String, Default Visibility);
+        Create HUD Text(Event Player, Null, Null, Custom String("Scoped: Powerful push. + Crouch to push self", Null, Null, Null), Left, 9, Null, Null, Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, Null, Custom String("Nade: Area KB", Null, Null, Null), Left, 10, Null, Null, Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, Null, Custom String("Sleep: Pull and stun", Null, Null, Null), Left, 11, Null, Null, Color(White), Visible To and String, Default Visibility);
         Create HUD Text(Event Player, Null, Null, Custom String("Ult: KB {0}", Icon String(Arrow: Up), Null, Null), Left, 12, Null, Null, Color(White), Visible To and String, Default Visibility);
@@ -703,6 +703,10 @@ rule ("When 1 v 1 gets Enabled") {
         If(Global.oneVoneMode);
             Set Ultimate Charge(All Living Players(All Teams), 100);
         End;
+        Wait(35, Abort When False);
+        If(Global.oneVoneMode);
+            Set Ultimate Charge(All Living Players(All Teams), 100);
+        End;
         Wait(105, Abort When False);
         If(Global.oneVoneMode);
             Big Message(All Players(All Teams), Custom String("Sudden death!", Null, Null, Null));
@@ -750,7 +754,7 @@ rule ("Ultimate Ability: Impulse on trigger") {
         Or(Has Status(Event Player, Stunned), Has Status(Victim, Rooted)) == True;
     }
     actions {
-        Wait(0.1, Ignore Condition);
+        Wait(0.05, Ignore Condition);
         Clear Status(Victim, Stunned);
         Clear Status(Victim, Rooted);
     }
@@ -764,12 +768,11 @@ rule ("Ultimate Ability: Impulse on trigger") {
     }
     conditions {
         Is In Air(Event Player) == True;
-        Distance Between(Position Of(Event Player), First Of(Global.gameArrayVector)) > 26;
     }
     actions {
-        Wait(0.2, Ignore Condition);
+        Wait(0.1, Ignore Condition);
         Wait Until(And(Is Button Held(Event Player, Button(Ultimate)), Compare(Ultimate Charge Percent(Event Player), ==, 100)), 99999);
-        Apply Impulse(Event Player, Add(First Of(Global.gameArrayVector), Vector(0, 0.75, 0)), 12, To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Add(First Of(Global.gameArrayVector), Vector(0, 3, 0)), 12, To World, Cancel Contrary Motion);
     }
 }
 
@@ -1122,7 +1125,7 @@ rule ("Ana Health Reset") {
     }
     actions {
         Set Player Health(Event Player, 199);
-        Wait(0.5, Ignore Condition);
+        Wait(0.75, Ignore Condition);
         Loop;
     }
 }
@@ -1162,15 +1165,16 @@ rule ("Ana Primary ammo HUD") {
         Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
         Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
         Set Player Variable(Event Player, primaryAmmo, 1);
+        Wait(0.25, Ignore Condition);
         Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
         Set Player Variable(Event Player, primaryAmmo, 0);
         Destroy In-World Text((Event Player).primaryAmmoHud);
         Set Primary Fire Enabled(Event Player, False);
         Wait(0.016, Ignore Condition);
-        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(33.33, (Event Player).ultMultiplier), Destination and Rate);
+        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(30, (Event Player).ultMultiplier), Destination and Rate);
         Create In-World Text(Event Player, Custom String("Primary: 0, Reloading {0}%", (Event Player).primaryAmmoChase, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.3, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
         Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
-        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 3);
+        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 3.5);
         Wait(0.016, Ignore Condition);
         Destroy In-World Text((Event Player).primaryAmmoHud);
         Stop Chasing Player Variable(Event Player, primaryAmmoChase);
@@ -1309,10 +1313,10 @@ rule ("Primary Fire: Friendly Impulse") {
     }
     actions {
         Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(10, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(7, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(11, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Wait(1, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(7, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(1.35, Ignore Condition);
     }
 }
 
@@ -1328,11 +1332,11 @@ rule ("Primary Fire: Enemy Push") {
     }
     actions {
         Set Player Variable(Event Player, primaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 14))));
-        Set Status(Victim, Attacker, Rooted, 0.85);
-        Apply Impulse(Victim, Vector(0, 0.25, 0), Multiply(5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Set Status(Victim, Attacker, Rooted, 0.9);
+        Apply Impulse(Victim, Vector(0, 0.35, 0), Multiply(4.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).primaryFirePulse, Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1350,11 +1354,11 @@ rule ("Secondary Fire: Friendly Impulse") {
     }
     actions {
         Wait Until(Compare((Event Player).secondaryAmmo, ==, 0), 99999);
-        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Vector(0, 1, 0), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Wait(1, Ignore Condition);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(13, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Wait(1.35, Ignore Condition);
     }
 }
 
@@ -1373,13 +1377,13 @@ rule ("Secondary Fire: Enemy Push") {
     actions {
         Set Player Variable(Event Player, secondaryFirePulse, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Vertical Angle From Direction(Add(Facing Direction Of(Event Player), 14))));
         If(Compare((Event Player).scopedShotsStun, ==, True));
-            Set Status(Victim, Attacker, Stunned, Multiply(0.75, (Event Player).ultMultiplier));
+            Set Status(Victim, Attacker, Stunned, Multiply(0.8, (Event Player).ultMultiplier));
         End;
-        Set Status(Victim, Attacker, Rooted, 1);
+        Set Status(Victim, Attacker, Rooted, 1.25);
         Apply Impulse(Victim, Vector(0, 0.5, 0), Multiply(6, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(18.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(19.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.25, Ignore Condition);
-        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(18.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, (Event Player).secondaryFirePulse, Multiply(19.5, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Wait(0.6, Ignore Condition);
     }
 }
@@ -1398,9 +1402,9 @@ rule ("Sleep Dart lands, pulls") {
         Wait(0.1, Ignore Condition);
         Clear Status(Victim, Asleep);
         Apply Impulse(Victim, Add(Direction Towards(Victim, Attacker), Vector(0, 0.9, 0)), 8, To World, Cancel Contrary Motion);
-        Apply Impulse(Victim, Direction Towards(Victim, Attacker), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Victim, Direction Towards(Victim, Attacker), Multiply(16, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Victim, Add(Direction Towards(Victim, Attacker), Vector(0, 0.9, 0)), 8, To World, Cancel Contrary Motion);
-        Set Status(Victim, Attacker, Stunned, 2.25);
+        Set Status(Victim, Attacker, Stunned, 2.4);
     }
 }
 
@@ -1417,7 +1421,7 @@ rule ("Sleep Dart: Propel Forward") {
     }
     actions {
         Wait(0.65, Ignore Condition);
-        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(14, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
+        Apply Impulse(Event Player, Facing Direction Of(Event Player), Multiply(15, (Event Player).ultMultiplier), To World, Cancel Contrary Motion);
         Apply Impulse(Event Player, Add(Facing Direction Of(Event Player), Vector(0, 1, 0)), 8, To World, Cancel Contrary Motion);
     }
 }
@@ -1565,7 +1569,7 @@ rule ("When Dynamic Teams Disabled Player") {
         Is Game In Progress == True;
     }
     actions {
-        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.3.0", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
+        Create HUD Text(All Players(All Teams), Null, Custom String("Made by LUCKYNUMBER, first developed by Crebos. V.3.1", Null, Null, Null), Null, Right, 10, Null, Color(White), Null, Visible To and String, Default Visibility);
     }
 }
 
@@ -1810,4 +1814,3 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
-
