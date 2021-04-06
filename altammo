@@ -1281,6 +1281,7 @@ rule ("Ammo Allocation 4") {
         While(Compare((Event Player).primaryAmmo, ==, 0));
             While(Is Firing Secondary(Event Player));
                 If(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).primaryAmmo, ==, 2)));
+                    Set Ammo(Event Player, 0, Add((Event Player).primaryAmmo, (Event Player).secondaryAmmo));
                     Break;
                 End;
                 Set Primary Fire Enabled(Event Player, True);
