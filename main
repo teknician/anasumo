@@ -763,13 +763,13 @@ rule ("Ultimate Ability: Impulse on trigger") {
         All;
     }
     conditions {
-        Is In Air(Victim) == True;
+        Is In Air(Event Player) == True;
         Distance Between(Position Of(Event Player), First Of(Global.gameArrayVector)) > 26;
     }
     actions {
         Wait(0.2, Ignore Condition);
-        Wait Until(And(Is Button Held(Victim, Button(Ultimate)), Compare(Ultimate Charge Percent(Victim), ==, 100)), 99999);
-        Apply Impulse(Event Player, Add(Attacker, Vector(0, 0.5, 0)), 12, To World, Cancel Contrary Motion);
+        Wait Until(And(Is Button Held(Event Player, Button(Ultimate)), Compare(Ultimate Charge Percent(Event Player), ==, 100)), 99999);
+        Apply Impulse(Event Player, Add(First Of(Global.gameArrayVector), Vector(0, 0.75, 0)), 12, To World, Cancel Contrary Motion);
     }
 }
 
@@ -1803,4 +1803,3 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
-
