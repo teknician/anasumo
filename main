@@ -1125,7 +1125,7 @@ rule ("KB Increase closer to center") {
     }
     actions {
         Set Player Variable(Event Player, distanceFromCenter, Distance Between(Position Of(Event Player), First Of(Global.gameArrayVector)));
-        Set Player Variable(Event Player, moveDampener, Divide(4, Raise To Power((Event Player).distanceFromCenter, 2)));
+        Set Player Variable(Event Player, moveDampener, Divide(5, Multiply((Event Player).distanceFromCenter, 2)));
         Wait(1, Ignore Condition);
         Loop;
     }
@@ -1449,6 +1449,7 @@ rule ("Biotic Grenade: Enemy KB") {
         Set Player Variable(Event Player, affectedPlayers, Players Within Radius((Event Player).anaNadeLandingPosition, 6, All Teams, Surfaces));
         For Player Variable(Event Player, index, 0, Count Of((Event Player).affectedPlayers), 1);
             Apply Impulse(Value In Array((Event Player).affectedPlayers, (Event Player).index), Direction Towards(Subtract((Event Player).anaNadeLandingPosition, Vector(0, 0.75, 0)), Eye Position(Value In Array((Event Player).affectedPlayers, (Event Player).index))), Subtract(17, (Event Player).moveDampener), To World, Cancel Contrary Motion);
+            Set Status(Value In Array((Event Player).affectedPlayers, (Event Player).index), Null, Rooted, 0.6);
             Wait(0.016, Ignore Condition);
         End;
     }
@@ -1806,5 +1807,3 @@ rule ("Create Team when 2 Players confirmed") {
         Destroy In-World Text(Global.inMenuText);
     }
 }
-
-
