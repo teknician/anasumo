@@ -194,7 +194,7 @@ rule ("Values for Map King's Row") {
         "corner spawn 2"
         Modify Global Variable(gameArrayVector, Append To Array, Vector(-11.422, 40.688, -83.778));
         "Main Sphere Size"
-        Modify Global Variable(gameArrayOfRadii, Append To Array, 32);
+        Modify Global Variable(gameArrayOfRadii, Append To Array, 31);
         "Tower Sphere Size"
         Modify Global Variable(gameArrayOfRadii, Append To Array, 7);
         "Menuitem Start Normal Game"
@@ -1165,16 +1165,18 @@ rule ("Ana Primary ammo HUD") {
         Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
         Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
         Set Player Variable(Event Player, primaryAmmo, 1);
-        Wait(0.3, Ignore Condition);
+        Disallow Button(Event Player, Button(Primary Fire));
+        Wait(0.2, Ignore Condition);
+        Allow Button(Event Player, Button(Primary Fire));
         Wait Until(And(Is Firing Primary(Event Player), Not(Is Firing Secondary(Event Player))), 99999);
         Set Player Variable(Event Player, primaryAmmo, 0);
         Destroy In-World Text((Event Player).primaryAmmoHud);
         Set Primary Fire Enabled(Event Player, False);
         Wait(0.016, Ignore Condition);
-        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(30, (Event Player).ultMultiplier), Destination and Rate);
+        Chase Player Variable At Rate(Event Player, primaryAmmoChase, 100, Multiply(27.5, (Event Player).ultMultiplier), Destination and Rate);
         Create In-World Text(Event Player, Custom String("Primary: 0, Reloading {0}%", (Event Player).primaryAmmoChase, Null, Null), Update Every Frame(Add(Eye Position(Event Player), Multiply(100, Add(Add(Multiply(2.6, World Vector Of(Right, Event Player, Rotation)), Multiply(-1.3, Direction From Angles(Horizontal Angle From Direction(Facing Direction Of(Event Player)), Subtract(Vertical Angle From Direction(Facing Direction Of(Event Player)), 90)))), Multiply(3, Facing Direction Of(Event Player)))))), 2, Do Not Clip, Visible To Position String and Color, Color(Aqua), Default Visibility);
         Set Player Variable(Event Player, primaryAmmoHud, Last Text ID);
-        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 3.5);
+        Wait Until(Compare((Event Player).primaryAmmoChase, ==, 100), 4);
         Wait(0.016, Ignore Condition);
         Destroy In-World Text((Event Player).primaryAmmoHud);
         Stop Chasing Player Variable(Event Player, primaryAmmoChase);
@@ -1281,7 +1283,6 @@ rule ("Ammo Allocation 4") {
         While(Compare((Event Player).primaryAmmo, ==, 0));
             While(Is Firing Secondary(Event Player));
                 If(Or(Compare((Event Player).primaryAmmo, ==, 1), Compare((Event Player).primaryAmmo, ==, 2)));
-                    Set Ammo(Event Player, 0, Add((Event Player).primaryAmmo, (Event Player).secondaryAmmo));
                     Break;
                 End;
                 Set Primary Fire Enabled(Event Player, True);
@@ -1290,8 +1291,10 @@ rule ("Ammo Allocation 4") {
             If(Not(Is Firing Secondary(Event Player)));
                 Set Primary Fire Enabled(Event Player, False);
             End;
+            Set Ammo(Event Player, 0, Add((Event Player).primaryAmmo, (Event Player).secondaryAmmo));
             Wait(0.016, Ignore Condition);
         End;
+        Set Ammo(Event Player, 0, Add((Event Player).primaryAmmo, (Event Player).secondaryAmmo));
     }
 }
 
